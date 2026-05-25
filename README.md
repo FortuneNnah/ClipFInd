@@ -1,16 +1,52 @@
-# React + Vite
+# ClipFind
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A movie-identification platform that helps users discover movies from uploaded clips, scenes, screenshots, or short videos.
 
-Currently, two official plugins are available:
+ClipFind is a modern AI-powered movie search platform inspired by the idea of a "Shazam for movies." Users can upload movie clips and the system analyzes frames to identify the movie title, cast, release year, and streaming availability.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+# Features
+Current Features
+Drag & drop video upload
+Custom file upload UI
+Video file preview support
+Multiple file upload support
+Responsive upload interface
+Modern React-based frontend
 
-## React Compiler
+# Planned Features
+AI-powered movie identification
+Frame-by-frame analysis
+Scene recognition
+Audio fingerprinting
+Subtitle/dialogue matching
+Actor recognition
+Streaming platform discovery
+Watchlists and saved searches
+Similar movie recommendations
+Mobile app support
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# Project Vision
+People constantly come across movie scenes online through:
+TikTok edits, Instagram reels, YouTube shorts, Twitter/X clips, Memes and edits. Most of the time, users do not know the movie title.
 
-## Expanding the ESLint configuration
+ClipFind aims to solve that problem by allowing users to upload clips directly and instantly discover:
+Movie title
+Release year
+Cast
+Director
+Genre
+Streaming availability
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Tech Stack
+ Frontend<br>
+* React<br>
+* JavaScript<br>
+* CSS3<br>
+* React Hooks
+
+ Backend<br>
+* Node.js<br>
+* Express.js<br>
+* Multer<br>
+* FFmpeg<br>
+* Supabase
