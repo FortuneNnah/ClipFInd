@@ -169,6 +169,23 @@ body {
   font-weight: 600;
 }
 
+.uploadAllBtn {
+  background: transparent;
+  color: #a100ff;
+  border: 1px solid rgba(161,0,255,0.12);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.uploadAllBtn:hover { background: rgba(161,0,255,0.06); }
+
+.upload-status { margin-top: 6px; }
+.upload-status .status { font-size: 0.85rem; color: #9ca3af; margin-right: 8px; }
+.upload-status .status.uploaded { color: #34d399; font-weight: 700; }
+.upload-status .status.error { color: #f87171; font-weight: 700; }
+.upload-status .status.uploading { color: #fbbf24; font-weight: 700; }
+
 .file-items-container {
   display: flex;
   flex-direction: column;
