@@ -1,7 +1,5 @@
 # 🎬 ClipFind
 
-> A modern movie-identification platform that helps users discover movies from uploaded clips, scenes, screenshots, or short videos.
-
 ClipFind is an AI-powered movie search platform inspired by the concept of "Shazam for movies." Users can upload video clips and the system analyzes frames to identify the movie title, cast, release year, and streaming availability.
 
 ## 📋 Table of Contents
