@@ -94,7 +94,7 @@ const Upload = () => {
     fileInputRef.current.value = null; // reset file input after all uploads attempted
   };
   return (
-    <div className="container">
+    <div className="upload-container">
       <div className="heading">
         <p className="aitext">AI · POWERED SCENE RECOGNITION</p>
         <h1>Found a Scene? </h1>

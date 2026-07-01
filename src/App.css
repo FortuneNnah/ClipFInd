@@ -10,24 +10,44 @@ body {
   color: #000;
 }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 20px;
-}
-
-.header{
-  padding: 10px 20px;
-  font-family: 'Poppins', sans-serif;
+.header-container{
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 40px;
   font-size: .9rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.header .clip{
+.header-container .navlinks{
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-size: 1rem;
+}
+.header-container li{
+  list-style: none;
+}
+
+.header-container .navlinks a{
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.logo{
+  font-size: .8rem;
+}
+
+.logo .clip{
   color: #ff1f1f;
   font-weight: 700;
 }
 
-.container {
+.navlinks .L1 a{
+  color: #ff1f1f;
+}
+
+.upload-container {
   max-width: 760px;
   margin: 0 auto;
   padding: 40px 20px;
