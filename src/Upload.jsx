@@ -128,7 +128,7 @@ const Upload = () => {
           >
             Browse files
           </button>
-          <p className="note">Supports all file types * Max 5MB per file</p>
+          <p className="note">Supports all file types * Max 6MB per file</p>
         </div>
       </div>
 
