@@ -89,7 +89,6 @@ const Upload = () => {
         continue;
       }
       // await each upload sequentially
-      // eslint-disable-next-line no-await-in-loop
       await uploadSingle(f, i);
     }
     fileInputRef.current.value = null; // reset file input after all uploads attempted
@@ -97,8 +96,10 @@ const Upload = () => {
   return (
     <div className="container">
       <div className="heading">
-        <h1>Upload Files</h1>
-        <p>Upload your clips of movies here</p>
+        <p className="aitext">AI · POWERED SCENE RECOGNITION</p>
+        <h1>Found a Scene? </h1>
+        <h2>We'll <span className="clip">Find</span> the Movie.</h2>
+        <p>Upload any movie clip and our AI identifies it instantly — title, cast, director, and more.</p>
       </div>
       <div
         className="upload-area"
@@ -109,7 +110,7 @@ const Upload = () => {
           <div className="drag-icon" aria-hidden="true">
             ⬇
           </div>
-          <p className="dragtxt">Drag & Drop Files</p>
+          <p className="dragtxt">Drag & drop your clip here</p>
           <p className="Or">or</p>
           <input
             type="file"
