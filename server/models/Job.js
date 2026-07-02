@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose';
 
 const jobSchema = new mongoose.Schema({
     filename: String,
@@ -18,7 +18,6 @@ const jobSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-
 });
 
-module.exports = mongoose.model('Job', jobSchema);
+export default mongoose.model('Job', jobSchema);
