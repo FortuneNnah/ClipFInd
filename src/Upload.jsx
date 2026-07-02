@@ -136,28 +136,6 @@ const Upload = () => {
       <div className="file-list">
         {files.length > 0 ? (
           <>
-            <div className="file-list-header">
-              <h3>
-                {files.length} file{files.length !== 1 ? "s" : ""} selected
-              </h3>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <button
-                  type="button"
-                  className="uploadAllBtn"
-                  onClick={handleUploadAll}
-                >
-                  Upload All
-                </button>
-                <span className="total-size">
-                  {(
-                    files.reduce((sum, file) => sum + file.size, 0) /
-                    1024 /
-                    1024
-                  ).toFixed(2)}{" "}
-                  MB
-                </span>
-              </div>
-            </div>
             <div className="file-items-container">
               {files.map((file, index) => {
                 const isOverLimit = file.size > fileSizeLimit;
@@ -211,6 +189,28 @@ const Upload = () => {
                   </div>
                 );
               })}
+            </div>
+            <div className="file-list-header">
+              <h3>
+                {files.length} file{files.length !== 1 ? "s" : ""} selected
+              </h3>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <button
+                  type="button"
+                  className="uploadAllBtn"
+                  onClick={handleUploadAll}
+                >
+                  Upload All
+                </button>
+                <span className="total-size">
+                  {(
+                    files.reduce((sum, file) => sum + file.size, 0) /
+                    1024 /
+                    1024
+                  ).toFixed(2)}{" "}
+                  MB
+                </span>
+              </div>
             </div>
           </>
         ) : (
