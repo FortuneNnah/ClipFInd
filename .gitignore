@@ -1,4 +1,6 @@
 .env
+server/frames/
+server/uploads/
 
 # Logs
 logs
