@@ -8,7 +8,13 @@ const jobSchema = new mongoose.Schema({
     },
     frames: [String],
     transcript: String,
-    celebrities: [String],
+    celebrities: [
+        {
+            name: String,
+            confidence: Number,
+            urls: [String]
+        }
+    ],
     result: {
         title: String,
         year: String,
