@@ -15,6 +15,19 @@ const jobSchema = new mongoose.Schema({
             urls: [String]
         }
     ],
+    movies: [
+        {
+            name: String,
+            movies: [
+            {
+                title: String,
+                year: String,
+                character: String,
+                poster_path: String
+            }
+            ]
+        }
+    ],
     result: {
         title: String,
         year: String,
