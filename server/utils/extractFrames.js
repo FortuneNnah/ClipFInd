@@ -8,7 +8,7 @@ export const extractFrames = (videoPath, outputFolder) => {
   return new Promise((resolve, reject) => {
     ffmpeg(videoPath)
       .output(path.join(outputFolder, "frame-%03d.png"))
-      .outputOptions("-vf", "fps=1")
+      .outputOptions("-vf", "fps=1", "-frames:v", "30")
 
       .on("start", (commandLine) => {
         console.log("FFmpeg started:");
