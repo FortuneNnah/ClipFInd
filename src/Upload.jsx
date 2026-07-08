@@ -1,12 +1,13 @@
 import React, { useRef, useState } from "react";
 import "./App.css";
 
+const HISTORY_KEY = "clipfind-upload-history";
+
 const Upload = () => {
   const fileInputRef = useRef(null);
 
   const [files, setFiles] = useState([]);
   const [uploadStatuses, setUploadStatuses] = useState({});
-  const [isDragActive, setIsDragActive] = useState(false);
 
   const handleclick = () => {
     fileInputRef.current.click();
@@ -22,30 +23,12 @@ const Upload = () => {
     e.target.value = null; // Clear the input value to allow re-uploading the same file if needed
   };
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    setIsDragActive(true);
-  };
-
   const handleDragOver = (e) => {
     e.preventDefault();
-    setIsDragActive(true);
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = "copy";
-    }
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    if (e.currentTarget.contains(e.relatedTarget)) {
-      return;
-    }
-    setIsDragActive(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    setIsDragActive(false);
     handleFiles(e.dataTransfer.files);
   };
 
@@ -61,11 +44,29 @@ const Upload = () => {
   };
   const fileSizeLimit = 15 * 1024 * 1024;
 
+  const saveToHistory = (file, response) => {
+    const record = {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      filename: response?.filename || file.name,
+      originalname: file.name,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+      previewUrl: response?.frames?.[0]
+        ? `http://localhost:4000/frames/${response.frames[0]}`
+        : null,
+    };
+
+    const existing = window.localStorage.getItem(HISTORY_KEY);
+    const parsed = existing ? JSON.parse(existing) : [];
+    const nextHistory = [record, ...(Array.isArray(parsed) ? parsed : [])].slice(0, 20);
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+  };
+
   const uploadSingle = (file, index) => {
     return new Promise((resolve) => {
       setUploadStatuses((s) => ({
         ...s,
-        [index]: { uploading: true, progress: 0, processing: false },
+        [index]: { uploading: true, progress: 0 },
       }));
 
       const form = new FormData();
@@ -83,7 +84,6 @@ const Upload = () => {
               ...s[index],
               uploading: true,
               progress,
-              processing: progress >= 100,
             },
           }));
         }
@@ -99,13 +99,10 @@ const Upload = () => {
                 uploading: false,
                 uploaded: true,
                 progress: 100,
-                processing: false,
                 filename: data.filename,
-                previewUrl: data.frames?.[0]
-                  ? `http://localhost:4000/frames/${data.frames[0]}`
-                  : null,
               },
             }));
+            saveToHistory(file, data);
             resolve();
             return;
           }
@@ -115,7 +112,6 @@ const Upload = () => {
               uploading: false,
               error: data.message || "Upload failed",
               progress: s[index]?.progress ?? 0,
-              processing: false,
             },
           }));
         } else {
@@ -125,7 +121,6 @@ const Upload = () => {
               uploading: false,
               error: `Upload failed (${xhr.status})`,
               progress: s[index]?.progress ?? 0,
-              processing: false,
             },
           }));
         }
@@ -139,7 +134,6 @@ const Upload = () => {
             uploading: false,
             error: "Upload error",
             progress: s[index]?.progress ?? 0,
-            processing: false,
           },
         }));
         resolve();
@@ -167,31 +161,6 @@ const Upload = () => {
     }
     fileInputRef.current.value = null; // reset file input after all uploads attempted
   };
-
-  const uploadedCount = Object.values(uploadStatuses).filter(
-    (status) => status?.uploaded,
-  ).length;
-  const completedCount = files.filter((_, index) => {
-    const status = uploadStatuses[index] || {};
-    return status.uploaded || status.error;
-  }).length;
-  const overallProgress = files.length
-    ? Math.round(
-        files.reduce((sum, _, index) => {
-          const status = uploadStatuses[index] || {};
-          if (status.uploaded || status.error) return sum + 1;
-          if (status.uploading || status.processing) {
-            return sum + (status.progress ? status.progress / 100 : 0.1);
-          }
-          return sum;
-        }, 0) / files.length * 100,
-      )
-    : 0;
-  const isUploadInProgress = Object.values(uploadStatuses).some(
-    (status) => status?.uploading,
-  );
-  const showUploadSummary = uploadedCount > 0 || isUploadInProgress;
-
   return (
     <div className="upload-container">
       <div className="heading">
@@ -201,10 +170,8 @@ const Upload = () => {
         <p>Upload any movie clip and our AI identifies it instantly — title, cast, director, and more.</p>
       </div>
       <div
-        className={`upload-area ${isDragActive ? "drag-active" : ""}`}
-        onDragEnter={handleDragEnter}
+        className="upload-area"
         onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="upload-area-inner">
@@ -230,7 +197,7 @@ const Upload = () => {
           >
             Browse files
           </button>
-          <p className="note">Supports all file types * Max 15MB per file</p>
+          <p className="note">Supports all file types * Max 6MB per file</p>
         </div>
       </div>
 
@@ -304,7 +271,7 @@ const Upload = () => {
                           ) : status.uploaded ? (
                             <div className="upload-result success">
                               <span className="result-icon">✔</span>
-                              <span>Uploaded successfully</span>
+                              <span>Uploaded</span>
                             </div>
                           ) : (
                             <div className="upload-result error">
@@ -331,20 +298,22 @@ const Upload = () => {
               <h3>
                 {files.length} file{files.length !== 1 ? "s" : ""} selected
               </h3>
-              <div className="file-list-actions">
-                {showUploadSummary && (
-                  <span className="upload-summary-badge">
-                    {uploadedCount} / {files.length} uploaded
-                  </span>
-                )}
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <button
                   type="button"
                   className="uploadAllBtn"
                   onClick={handleUploadAll}
-                  disabled={isUploadInProgress || files.length === 0}
                 >
                   Upload All
                 </button>
+                <span className="total-size">
+                  {(
+                    files.reduce((sum, file) => sum + file.size, 0) /
+                    1024 /
+                    1024
+                  ).toFixed(2)}{" "}
+                  MB
+                </span>
               </div>
             </div>
           </>
