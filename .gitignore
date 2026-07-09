@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 uploads
+server/
+History.jsx
 build
 # Editor directories and files
 .vscode/*

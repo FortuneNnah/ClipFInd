@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
 import "./App.css";
 
+const HISTORY_KEY = "clipfind-upload-history";
+
 const Upload = () => {
   const fileInputRef = useRef(null);
 
@@ -40,7 +42,25 @@ const Upload = () => {
       return next;
     });
   };
-  const fileSizeLimit = 6 * 1024 * 1024;
+  const fileSizeLimit = 15 * 1024 * 1024;
+
+  const saveToHistory = (file, response) => {
+    const record = {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      filename: response?.filename || file.name,
+      originalname: file.name,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+      previewUrl: response?.frames?.[0]
+        ? `http://localhost:4000/frames/${response.frames[0]}`
+        : null,
+    };
+
+    const existing = window.localStorage.getItem(HISTORY_KEY);
+    const parsed = existing ? JSON.parse(existing) : [];
+    const nextHistory = [record, ...(Array.isArray(parsed) ? parsed : [])].slice(0, 20);
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+  };
 
   const uploadSingle = (file, index) => {
     return new Promise((resolve) => {
@@ -82,6 +102,7 @@ const Upload = () => {
                 filename: data.filename,
               },
             }));
+            saveToHistory(file, data);
             resolve();
             return;
           }
