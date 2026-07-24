@@ -114,7 +114,7 @@ const uploadVideo = async (req, res) => {
       if (!res.headersSent) {
         res.status(502).json({ 
           error: "Processing Error", 
-          message: "The AI analysis engine is currently unavailable. Please try again in a moment." 
+          message: "The AI analysis engine is currently unavailable. Please try again in a moment."  
         });
       }
     }
