@@ -88,10 +88,15 @@ const uploadVideo = async (req, res) => {
     });
 
     // Background AI Processing (Runs quietly in the background)
+    // Background AI Processing (Runs quietly in the background)
     console.log('Deploying Streamlined Visual Matcher...');
     searchByDialogue("", [], originalFilename, framePaths)
       .then(async (matchResults) => {
         const bestMatch = (matchResults && matchResults.length > 0) ? matchResults[0] : null;
+        
+        if (bestMatch && !bestMatch.director) {
+          bestMatch.director = "Unknown";
+        }
         
         await Job.findByIdAndUpdate(newJob._id, {
           movies: matchResults || [],
@@ -101,8 +106,17 @@ const uploadVideo = async (req, res) => {
         console.log(`Job ${newJob._id} completed processing.`);
       })
       .catch(async (err) => {
-        console.error("Background AI failed:", err);
-        await Job.findByIdAndUpdate(newJob._id, { status: 'failed' });
+        console.error("Background AI failed:", err.message || err);
+        
+        // Clear, actionable error message for the frontend
+        const failureReason = err.code === 'ECONNRESET' || err.name === 'APIConnectionError'
+          ? "Network error. Please check your internet connection and try again."
+          : (err.message || "AI Analysis Failed");
+
+        await Job.findByIdAndUpdate(newJob._id, { 
+          status: 'failed',
+          error: failureReason 
+        }).catch(() => {});
       })
       .finally(() => {
         cleanupFiles(videoPath, Frames_dir);
@@ -110,6 +124,7 @@ const uploadVideo = async (req, res) => {
 
     } catch (error) {
       console.error("Critical Upload Failure:", error);
+      
 
       if (!res.headersSent) {
         res.status(502).json({ 
