@@ -17,13 +17,13 @@ const getVideoDuration = (filePath) => {
   });
 };
 
-// cleanup
+// Cleanup function to wipe local files immediately after use
 const cleanupFiles = (filePath, Frames_dir) => {
   try {
     const audioPath = filePath.replace(/\.[^/.]+$/, '.wav');
     const compressedPath = filePath.replace(/\.[^/.]+$/, '_compressed.mp3');
 
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
     if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
     if (fs.existsSync(compressedPath)) fs.unlinkSync(compressedPath);
     if (fs.existsSync(Frames_dir)) {
@@ -36,6 +36,9 @@ const cleanupFiles = (filePath, Frames_dir) => {
 };
 
 const uploadVideo = async (req, res) => {
+  let videoPath = null;
+  let Frames_dir = null;
+
   try {
     // 1. File Validation
     if (!req.file) {
@@ -47,32 +50,33 @@ const uploadVideo = async (req, res) => {
 
     const filename = req.file.filename;
     const originalFilename = req.file.originalname;
+    videoPath = req.file.path; 
 
-    //  Duration Check
-    const duration = await getVideoDuration(req.file.path);
+    // Duration Check
+    const duration = await getVideoDuration(videoPath);
     console.log(`Uploaded video duration: ${duration} seconds`);
 
     if (duration > 180) {
-      fs.unlinkSync(req.file.path); 
+      if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
       return res.status(400).json({ 
         error: "File Too Large", 
         message: "Your clip is over 3 minutes. Please trim it and try again." 
       });
     }
 
-    // Extract Frames
+    // Setup Temp Frames Directory
     const uploadId = Date.now();
-    const Frames_dir = path.join(path.resolve(), 'frames', `upload-${uploadId}`);
+    Frames_dir = path.join(path.resolve(), 'frames', `upload-${uploadId}`);
     fs.mkdirSync(Frames_dir, { recursive: true });
 
-    await extractFrames(req.file.path, Frames_dir, duration);
+    // Extract Frames
+    await extractFrames(videoPath, Frames_dir, duration);
     const frames = fs.readdirSync(Frames_dir);
     console.log("Frames found:", frames.length);
 
     const framePaths = frames.map(frame => path.join(Frames_dir, frame));
-    const videoPath = req.file.path;
 
-    // Create and Save Pending Job
+    //  Create and Save Pending Job
     const newJob = new Job({
       filename,
       frames: [],
@@ -81,14 +85,13 @@ const uploadVideo = async (req, res) => {
     });
     await newJob.save();
 
-    // Respond immediately to the frontend! (Fire and forget)
+  
     res.status(202).json({
       message: "Processing started",
       jobId: newJob._id
     });
 
-    // Background AI Processing (Runs quietly in the background)
-    // Background AI Processing (Runs quietly in the background)
+    
     console.log('Deploying Streamlined Visual Matcher...');
     searchByDialogue("", [], originalFilename, framePaths)
       .then(async (matchResults) => {
@@ -108,7 +111,6 @@ const uploadVideo = async (req, res) => {
       .catch(async (err) => {
         console.error("Background AI failed:", err.message || err);
         
-        // Clear, actionable error message for the frontend
         const failureReason = err.code === 'ECONNRESET' || err.name === 'APIConnectionError'
           ? "Network error. Please check your internet connection and try again."
           : (err.message || "AI Analysis Failed");
@@ -122,19 +124,19 @@ const uploadVideo = async (req, res) => {
         cleanupFiles(videoPath, Frames_dir);
       });
 
-    } catch (error) {
-      console.error("Critical Upload Failure:", error);
-      
-
-      if (!res.headersSent) {
-        res.status(502).json({ 
-          error: "Processing Error", 
-          message: "The AI analysis engine is currently unavailable. Please try again in a moment."  
-        });
-      }
+  } catch (error) {
+    console.error("Critical Upload Failure:", error);
+    if (videoPath || Frames_dir) {
+      cleanupFiles(videoPath, Frames_dir);
     }
-  };
 
-  
+    if (!res.headersSent) {
+      res.status(502).json({ 
+        error: "Processing Error", 
+        message: "The AI analysis engine is currently unavailable. Please try again in a moment."  
+      });
+    }
+  }
+};
 
-  export { uploadVideo};
+export { uploadVideo };

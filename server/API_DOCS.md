@@ -1,6 +1,6 @@
 # ClipFind Backend API Documentation
 
-Base URL: `https://your-render-url.onrender.com/api` *(Update this when deployed)*
+Base URL: `https://clipfind-backend.onrender.com`
 
 ---
 
