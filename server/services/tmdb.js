@@ -3,7 +3,11 @@ import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import fs from 'fs';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY,
+  maxRetries: 3, 
+  timeout: 60000 
+});
 
 // Streamlined Vision Search Engine
 const searchByDialogue = async (transcript, actors = [], filename = "", framePaths = []) => {
@@ -25,8 +29,12 @@ const searchByDialogue = async (transcript, actors = [], filename = "", framePat
 
   console.log('Running Streamlined Visual Matcher...');
 
-  // Base64 conversion
-  const imageContents = framePaths.map(filePath => {
+  // Base64 conversion 
+  const MAX_FRAMES = 8;
+  const step = Math.max(1, Math.floor(framePaths.length / MAX_FRAMES));
+  const sampledFramePaths = framePaths.filter((_, index) => index % step === 0).slice(0, MAX_FRAMES);
+
+  const imageContents = sampledFramePaths.map(filePath => {
     const base64Image = fs.readFileSync(filePath, { encoding: 'base64' });
     return {
       type: "image_url",
