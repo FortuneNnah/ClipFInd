@@ -4,38 +4,17 @@ import path from "path";
 import fs from "fs";
 import cors from "cors";
 import { extractFrames } from "./utils/extractFrames.js";
-import { getVideoMetadata } from "./utils/getVideoMetadata.js";
 
 const __dirname = path.resolve();
-const UPLOAD_DIR = path.join(__dirname, "uploads");
-const Frames_dir = path.join(__dirname, "frames");
+const Frames_dir = path.join(__dirname, 'frames');
 
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-if (!fs.existsSync(Frames_dir)) {
-  fs.mkdirSync(Frames_dir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: function (req, file, cb) {
-    const safeName = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    cb(null, safeName);
-  },
-});
-
-const upload = multer({ storage });
+if (!fs.existsSync(Frames_dir)) fs.mkdirSync(Frames_dir, { recursive: true });
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-app.use("/frames", express.static(Frames_dir));
+app.use('/frames', express.static(Frames_dir));
 
 
 app.get("/", (req, res) => {
@@ -51,15 +30,9 @@ app.post("/upload", upload.single("video"), async (req, res) => {
     }
     console.log("Video path:", req.file.path);
     console.log("Frames folder:", Frames_dir);
-
     await extractFrames(req.file.path, Frames_dir);
-
-    // const metadata = await getVideoMetadata(req.file.path);
-
     const frames = fs.readdirSync(Frames_dir);
-
     console.log(`Frames extracted to ${Frames_dir}`);
-    cosole.log(metadata);
     res.json({
       success: true,
       filename: req.file.filename,
@@ -97,6 +70,4 @@ app.post("/upload-multiple", upload.array("videos", 50), (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
