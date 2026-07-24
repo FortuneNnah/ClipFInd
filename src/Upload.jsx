@@ -42,37 +42,84 @@ const Upload = () => {
   };
   const fileSizeLimit = 6 * 1024 * 1024;
 
-  const uploadSingle = async (file, index) => {
-    try {
-      setUploadStatuses((s) => ({ ...s, [index]: { uploading: true } }));
+  const uploadSingle = (file, index) => {
+    return new Promise((resolve) => {
+      setUploadStatuses((s) => ({
+        ...s,
+        [index]: { uploading: true, progress: 0 },
+      }));
+
       const form = new FormData();
       form.append("video", file);
-      const res = await fetch("http://localhost:4000/upload", {
-        method: "POST",
-        body: form,
-      });
-      const data = await res.json();
-      if (data && data.success) {
+      const xhr = new XMLHttpRequest();
+
+      xhr.open("POST", "http://localhost:4000/upload");
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadStatuses((s) => ({
+            ...s,
+            [index]: {
+              ...s[index],
+              uploading: true,
+              progress,
+            },
+          }));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const data = JSON.parse(xhr.responseText || "{}");
+          if (data.success) {
+            setUploadStatuses((s) => ({
+              ...s,
+              [index]: {
+                uploading: false,
+                uploaded: true,
+                progress: 100,
+                filename: data.filename,
+              },
+            }));
+            resolve();
+            return;
+          }
+          setUploadStatuses((s) => ({
+            ...s,
+            [index]: {
+              uploading: false,
+              error: data.message || "Upload failed",
+              progress: s[index]?.progress ?? 0,
+            },
+          }));
+        } else {
+          setUploadStatuses((s) => ({
+            ...s,
+            [index]: {
+              uploading: false,
+              error: `Upload failed (${xhr.status})`,
+              progress: s[index]?.progress ?? 0,
+            },
+          }));
+        }
+        resolve();
+      };
+
+      xhr.onerror = () => {
         setUploadStatuses((s) => ({
           ...s,
           [index]: {
             uploading: false,
-            uploaded: true,
-            filename: data.filename,
+            error: "Upload error",
+            progress: s[index]?.progress ?? 0,
           },
         }));
-      } else {
-        setUploadStatuses((s) => ({
-          ...s,
-          [index]: { uploading: false, error: data.message || "Upload failed" },
-        }));
-      }
-    } catch (err) {
-      setUploadStatuses((s) => ({
-        ...s,
-        [index]: { uploading: false, error: err.message || "Upload error" },
-      }));
-    }
+        resolve();
+      };
+
+      xhr.send(form);
+    });
   };
 
   const handleUploadAll = async () => {
@@ -89,16 +136,17 @@ const Upload = () => {
         continue;
       }
       // await each upload sequentially
-      // eslint-disable-next-line no-await-in-loop
       await uploadSingle(f, i);
     }
     fileInputRef.current.value = null; // reset file input after all uploads attempted
   };
   return (
-    <div className="container">
+    <div className="upload-container">
       <div className="heading">
-        <h1>Upload Files</h1>
-        <p>Upload your clips of movies here</p>
+        <p className="aitext">AI · POWERED SCENE RECOGNITION</p>
+        <h1>Found a Scene? </h1>
+        <h2>We'll <span className="clip">Find</span> the Movie.</h2>
+        <p>Upload any movie clip and our AI identifies it instantly — title, cast, director, and more.</p>
       </div>
       <div
         className="upload-area"
@@ -109,7 +157,7 @@ const Upload = () => {
           <div className="drag-icon" aria-hidden="true">
             ⬇
           </div>
-          <p className="dragtxt">Drag & Drop Files</p>
+          <p className="dragtxt">Drag & drop your clip here</p>
           <p className="Or">or</p>
           <input
             type="file"
@@ -128,39 +176,18 @@ const Upload = () => {
           >
             Browse files
           </button>
-          <p className="note">Supports all file types * Max 5MB per file</p>
+          <p className="note">Supports all file types * Max 6MB per file</p>
         </div>
       </div>
 
       <div className="file-list">
         {files.length > 0 ? (
           <>
-            <div className="file-list-header">
-              <h3>
-                {files.length} file{files.length !== 1 ? "s" : ""} selected
-              </h3>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <button
-                  type="button"
-                  className="uploadAllBtn"
-                  onClick={handleUploadAll}
-                >
-                  Upload All
-                </button>
-                <span className="total-size">
-                  {(
-                    files.reduce((sum, file) => sum + file.size, 0) /
-                    1024 /
-                    1024
-                  ).toFixed(2)}{" "}
-                  MB
-                </span>
-              </div>
-            </div>
             <div className="file-items-container">
               {files.map((file, index) => {
                 const isOverLimit = file.size > fileSizeLimit;
                 const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                const status = uploadStatuses[index] || {};
                 return (
                   <div
                     key={index}
@@ -186,18 +213,53 @@ const Upload = () => {
                         )}
                       </span>
                       <div className="upload-status">
-                        {uploadStatuses[index]?.uploading && (
+                        {status.uploading && (
                           <span className="status uploading">Uploading…</span>
                         )}
-                        {uploadStatuses[index]?.uploaded && (
+                        {status.uploaded && (
                           <span className="status uploaded">Uploaded</span>
                         )}
-                        {uploadStatuses[index]?.error && (
-                          <span className="status error">
-                            {uploadStatuses[index].error}
-                          </span>
+                        {status.error && (
+                          <span className="status error">{status.error}</span>
                         )}
                       </div>
+                      {(status.uploading || status.uploaded || status.error) && (
+                        <div
+                          className={`progress-wrapper ${
+                            status.uploaded
+                              ? "success"
+                              : status.error
+                              ? "error"
+                              : ""
+                          }`}
+                        >
+                          {status.uploading ? (
+                            <>
+                              <div className="progress-bar">
+                                <div
+                                  className="progress-bar-fill"
+                                  style={{
+                                    width: `${status.progress}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="progress-label">
+                                {status.progress}%
+                              </span>
+                            </>
+                          ) : status.uploaded ? (
+                            <div className="upload-result success">
+                              <span className="result-icon">✔</span>
+                              <span>Uploaded</span>
+                            </div>
+                          ) : (
+                            <div className="upload-result error">
+                              <span className="result-icon">✕</span>
+                              <span>{status.error || "Upload failed"}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -210,6 +272,28 @@ const Upload = () => {
                   </div>
                 );
               })}
+            </div>
+            <div className="file-list-header">
+              <h3>
+                {files.length} file{files.length !== 1 ? "s" : ""} selected
+              </h3>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <button
+                  type="button"
+                  className="uploadAllBtn"
+                  onClick={handleUploadAll}
+                >
+                  Upload All
+                </button>
+                <span className="total-size">
+                  {(
+                    files.reduce((sum, file) => sum + file.size, 0) /
+                    1024 /
+                    1024
+                  ).toFixed(2)}{" "}
+                  MB
+                </span>
+              </div>
             </div>
           </>
         ) : (
