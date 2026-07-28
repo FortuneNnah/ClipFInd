@@ -1,9 +1,10 @@
 import React, { useRef, useState } from "react";
 import "./App.css";
 
-const HISTORY_KEY = "clipfind-upload-history";
 
 const Upload = () => {
+  const [movieResult, setMovieResult] = useState(null);
+
   const fileInputRef = useRef(null);
 
   const [files, setFiles] = useState([]);
@@ -42,38 +43,67 @@ const Upload = () => {
       return next;
     });
   };
-  const fileSizeLimit = 15 * 1024 * 1024;
+  const fileSizeLimit = 20 * 1024 * 1024;
 
-  const saveToHistory = (file, response) => {
-    const record = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      filename: response?.filename || file.name,
-      originalname: file.name,
-      size: file.size,
-      uploadedAt: new Date().toISOString(),
-      previewUrl: response?.frames?.[0]
-        ? `http://localhost:4000/frames/${response.frames[0]}`
-        : null,
-    };
+  const pollJob = (jobId, index) => {
+    console.log("Started polling:", jobId);
 
-    const existing = window.localStorage.getItem(HISTORY_KEY);
-    const parsed = existing ? JSON.parse(existing) : [];
-    const nextHistory = [record, ...(Array.isArray(parsed) ? parsed : [])].slice(0, 20);
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+    const interval = setInterval(async () => {
+      console.log("Polling...");
+      let index; // Add this line to define the index variable. You need to set it appropriately when calling pollJob.  
+
+      try {
+        const res = await fetch(
+          `https://clipfind-backend.onrender.com/api/job/${jobId}`
+        );
+
+        const data = await res.json();
+
+        console.log(data);
+
+        if (data.status === "completed") {
+          clearInterval(interval);
+
+          setMovieResult(data.result);
+
+          setUploadStatuses((s) => ({
+            ...s,
+            [index]: {
+              uploading: false,
+              processing: false,
+              uploaded: true,
+              progress: 100,
+            },
+          }));
+        }
+
+        if (data.status === "failed") {
+          clearInterval(interval);
+
+          console.error("Movie identification failed.");
+        }
+      } catch (err) {
+        clearInterval(interval);
+        console.error(err);
+      }
+    }, 3000);
   };
 
   const uploadSingle = (file, index) => {
     return new Promise((resolve) => {
       setUploadStatuses((s) => ({
         ...s,
-        [index]: { uploading: true, progress: 0 },
+        [index]: {
+          uploading: true,
+          progress: 0
+        },
       }));
 
       const form = new FormData();
       form.append("video", file);
       const xhr = new XMLHttpRequest();
 
-      xhr.open("POST", "http://localhost:4000/upload");
+      xhr.open("POST", "https://clipfind-backend.onrender.com/api/upload");
 
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -89,56 +119,32 @@ const Upload = () => {
         }
       };
 
+
       xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
+        if (xhr.status === 202) {
           const data = JSON.parse(xhr.responseText || "{}");
-          if (data.success) {
+
+          console.log("Upload response:", data);
+
+          if (data.jobId) {
             setUploadStatuses((s) => ({
               ...s,
               [index]: {
                 uploading: false,
                 uploaded: true,
                 progress: 100,
-                filename: data.filename,
               },
             }));
-            saveToHistory(file, data);
+
+            pollJob(data.jobId, index);
+
             resolve();
             return;
           }
-          setUploadStatuses((s) => ({
-            ...s,
-            [index]: {
-              uploading: false,
-              error: data.message || "Upload failed",
-              progress: s[index]?.progress ?? 0,
-            },
-          }));
         } else {
-          setUploadStatuses((s) => ({
-            ...s,
-            [index]: {
-              uploading: false,
-              error: `Upload failed (${xhr.status})`,
-              progress: s[index]?.progress ?? 0,
-            },
-          }));
+          console.error("Upload failed:", xhr.status, xhr.responseText);
         }
-        resolve();
       };
-
-      xhr.onerror = () => {
-        setUploadStatuses((s) => ({
-          ...s,
-          [index]: {
-            uploading: false,
-            error: "Upload error",
-            progress: s[index]?.progress ?? 0,
-          },
-        }));
-        resolve();
-      };
-
       xhr.send(form);
     });
   };
@@ -197,7 +203,7 @@ const Upload = () => {
           >
             Browse files
           </button>
-          <p className="note">Supports all file types * Max 6MB per file</p>
+          <p className="note">Supports all file types * Max 20MB per file</p>
         </div>
       </div>
 
@@ -237,6 +243,11 @@ const Upload = () => {
                         {status.uploading && (
                           <span className="status uploading">Uploading…</span>
                         )}
+                        {status.processing && (
+                          <span className="status processing">
+                            Processing AI...
+                          </span>
+                        )}
                         {status.uploaded && (
                           <span className="status uploaded">Uploaded</span>
                         )}
@@ -244,15 +255,14 @@ const Upload = () => {
                           <span className="status error">{status.error}</span>
                         )}
                       </div>
-                      {(status.uploading || status.uploaded || status.error) && (
+                      {(status.uploading || status.processing || status.uploaded || status.error) && (
                         <div
-                          className={`progress-wrapper ${
-                            status.uploaded
-                              ? "success"
-                              : status.error
+                          className={`progress-wrapper ${status.uploaded
+                            ? "success"
+                            : status.error
                               ? "error"
                               : ""
-                          }`}
+                            }`}
                         >
                           {status.uploading ? (
                             <>
@@ -268,6 +278,11 @@ const Upload = () => {
                                 {status.progress}%
                               </span>
                             </>
+                          ) : status.processing ? (
+                            <div className="upload-result processing">
+                              <span className="result-icon">⏳</span>
+                              <span>Identifying movie...</span>
+                            </div>
                           ) : status.uploaded ? (
                             <div className="upload-result success">
                               <span className="result-icon">✔</span>
