@@ -147,6 +147,84 @@ const Upload = () => {
       };
       xhr.send(form);
     });
+  const uploadSingle = (file, index) => {
+    return new Promise((resolve) => {
+      setUploadStatuses((s) => ({
+        ...s,
+        [index]: { uploading: true, progress: 0 },
+      }));
+
+      const form = new FormData();
+      form.append("video", file);
+      const xhr = new XMLHttpRequest();
+
+      xhr.open("POST", "http://localhost:4000/upload");
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadStatuses((s) => ({
+            ...s,
+            [index]: {
+              ...s[index],
+              uploading: true,
+              progress,
+            },
+          }));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const data = JSON.parse(xhr.responseText || "{}");
+          if (data.success) {
+            setUploadStatuses((s) => ({
+              ...s,
+              [index]: {
+                uploading: false,
+                uploaded: true,
+                progress: 100,
+                filename: data.filename,
+              },
+            }));
+            resolve();
+            return;
+          }
+          setUploadStatuses((s) => ({
+            ...s,
+            [index]: {
+              uploading: false,
+              error: data.message || "Upload failed",
+              progress: s[index]?.progress ?? 0,
+            },
+          }));
+        } else {
+          setUploadStatuses((s) => ({
+            ...s,
+            [index]: {
+              uploading: false,
+              error: `Upload failed (${xhr.status})`,
+              progress: s[index]?.progress ?? 0,
+            },
+          }));
+        }
+        resolve();
+      };
+
+      xhr.onerror = () => {
+        setUploadStatuses((s) => ({
+          ...s,
+          [index]: {
+            uploading: false,
+            error: "Upload error",
+            progress: s[index]?.progress ?? 0,
+          },
+        }));
+        resolve();
+      };
+
+      xhr.send(form);
+    });
   };
 
   const handleUploadAll = async () => {
@@ -203,7 +281,7 @@ const Upload = () => {
           >
             Browse files
           </button>
-          <p className="note">Supports all file types * Max 20MB per file</p>
+          <p className="note">Supports all file types * Max 5MB per file</p>
         </div>
       </div>
 
@@ -243,59 +321,13 @@ const Upload = () => {
                         {status.uploading && (
                           <span className="status uploading">Uploading…</span>
                         )}
-                        {status.processing && (
-                          <span className="status processing">
-                            Processing AI...
-                          </span>
-                        )}
-                        {status.uploaded && (
+                        {uploadStatuses[index]?.uploaded && (
                           <span className="status uploaded">Uploaded</span>
                         )}
                         {status.error && (
                           <span className="status error">{status.error}</span>
                         )}
                       </div>
-                      {(status.uploading || status.processing || status.uploaded || status.error) && (
-                        <div
-                          className={`progress-wrapper ${status.uploaded
-                            ? "success"
-                            : status.error
-                              ? "error"
-                              : ""
-                            }`}
-                        >
-                          {status.uploading ? (
-                            <>
-                              <div className="progress-bar">
-                                <div
-                                  className="progress-bar-fill"
-                                  style={{
-                                    width: `${status.progress}%`,
-                                  }}
-                                />
-                              </div>
-                              <span className="progress-label">
-                                {status.progress}%
-                              </span>
-                            </>
-                          ) : status.processing ? (
-                            <div className="upload-result processing">
-                              <span className="result-icon">⏳</span>
-                              <span>Identifying movie...</span>
-                            </div>
-                          ) : status.uploaded ? (
-                            <div className="upload-result success">
-                              <span className="result-icon">✔</span>
-                              <span>Uploaded</span>
-                            </div>
-                          ) : (
-                            <div className="upload-result error">
-                              <span className="result-icon">✕</span>
-                              <span>{status.error || "Upload failed"}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                     <button
                       type="button"
