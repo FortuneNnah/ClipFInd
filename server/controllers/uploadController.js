@@ -37,7 +37,7 @@ const cleanupFiles = (filePath, Frames_dir) => {
 
 const uploadVideo = async (req, res) => {
   try {
-    // 1. File Validation
+    // File Validation
     if (!req.file) {
       return res.status(400).json({ 
         error: "Missing File", 
