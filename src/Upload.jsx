@@ -10,7 +10,7 @@ const Upload = () => {
   const [uploadStatuses, setUploadStatuses] = useState({});
   const [movieResults, setMovieResults] = useState({});
 
-  const fileSizeLimit = 20 * 1024 * 1024;
+  const fileSizeLimit = 25 * 1024 * 1024;
 
   const handleclick = () => {
     fileInputRef.current.click();
@@ -304,247 +304,235 @@ const Upload = () => {
   };
 
   return (
-  <>
-    <main className="upload-container">
-      <div className="heading">
-        <p className="aitext">
-          AI · POWERED SCENE RECOGNITION
-        </p>
-
-        <h1>Found a Scene?</h1>
-
-        <h2>
-          We'll <span className="clip">Find</span> the Movie.
-        </h2>
-
-        <p>
-          Upload any movie clip and our AI identifies it instantly —
-          title, cast, director, and more.
-        </p>
-      </div>
-
-      <div
-        className="upload-area"
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <div className="upload-area-inner">
-          <div className="drag-icon" aria-hidden="true">
-            ⬇
-          </div>
-
-          <p className="dragtxt">
-            Drag & drop your clip here
+    <>
+      <main className="upload-container">
+        <div className="heading">
+          <p className="aitext">
+            AI · POWERED SCENE RECOGNITION
           </p>
 
-          <p className="Or">or</p>
+          <h1>Found a Scene?</h1>
 
-          <input
-            type="file"
-            accept="video/*"
-            ref={fileInputRef}
-            id="fileInput"
-            multiple
-            onChange={handleInputChange}
-          />
+          <h2>
+            We'll <span className="clip">Find</span> the Movie.
+          </h2>
 
-          <button
-            onClick={handleclick}
-            type="button"
-            className="uploadBtn"
-            id="uploadBtn"
-          >
-            Browse files
-          </button>
-
-          <p className="note">
-            Supports video files * Max 20MB per file
+          <p>
+            Upload any movie clip and our AI identifies it instantly —
+            title, cast, director, and more.
           </p>
         </div>
-      </div>
 
-      <div className="file-list">
-        {files.length > 0 ? (
-          <>
-            <div className="file-items-container">
-              {files.map((file, index) => {
-                const isOverLimit = file.size > fileSizeLimit;
+        <div
+          className="upload-area"
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <div className="upload-area-inner">
+            <div className="drag-icon" aria-hidden="true">
+              ⬇
+            </div>
 
-                const fileSize = (
-                  file.size /
-                  1024 /
-                  1024
-                ).toFixed(2);
+            <p className="dragtxt">
+              Drag & drop your clip here
+            </p>
+            t
+            <p className="Or">or</p>
 
-                const status = uploadStatuses[index] || {};
-                const movie = movieResults[index];
+            <input
+              type="file"
+              accept="video/*"
+              ref={fileInputRef}
+              id="fileInput"
+              multiple
+              onChange={handleInputChange}
+            />
 
-                return (
-                  <div
-                    key={index}
-                    className={`file-item ${
-                      isOverLimit ? "error" : ""
-                    }`}
-                  >
-                    <div className="file-item-icon">
-                      🎬
-                    </div>
+            <button
+              onClick={handleclick}
+              type="button"
+              className="uploadBtn"
+              id="uploadBtn"
+            >
+              Browse files
+            </button>
 
-                    <div className="file-item-details">
-                      <span
-                        className="file-name"
-                        title={file.name}
-                      >
-                        {file.name}
-                      </span>
+            <p className="note">
+              Supports video files * Max 25MB per file
+            </p>
+          </div>
+        </div>
 
-                      <span
-                        className={`file-size ${
-                          isOverLimit ? "error" : ""
+        <div className="file-list">
+          {files.length > 0 ? (
+            <>
+              <div className="file-items-container">
+                {files.map((file, index) => {
+                  const isOverLimit = file.size > fileSizeLimit;
+
+                  const fileSize = (
+                    file.size /
+                    1024 /
+                    1024
+                  ).toFixed(2);
+
+                  const status = uploadStatuses[index] || {};
+                  const movie = movieResults[index];
+
+                  return (
+                    <div
+                      key={index}
+                      className={`file-item ${isOverLimit ? "error" : ""
                         }`}
-                      >
-                        {isOverLimit ? (
-                          <>
-                            <span className="error-badge">
-                              ⚠️ Exceeds 20MB
-                            </span>
+                    >
+                      <div className="file-item-icon">
+                        🎬
+                      </div>
 
+                      <div className="file-item-details">
+                        <span
+                          className="file-name"
+                          title={file.name}
+                        >
+                          {file.name}
+                        </span>
+
+                        <span
+                          className={`file-size ${isOverLimit ? "error" : ""
+                            }`}
+                        >
+                          {isOverLimit ? (
+                            <>
+                              <span className="error-badge">
+                                ⚠️ Exceeds 25MB
+                              </span>
+
+                              <span className="file-size-value">
+                                {fileSize} MB
+                              </span>
+                            </>
+                          ) : (
                             <span className="file-size-value">
                               {fileSize} MB
                             </span>
-                          </>
-                        ) : (
-                          <span className="file-size-value">
-                            {fileSize} MB
-                          </span>
-                        )}
-                      </span>
+                          )}
+                        </span>
 
-                      <div className="upload-status">
+                        <div className="upload-status">
+                          {status.uploading && (
+                            <span className="status uploading">
+                              Uploading…
+                            </span>
+                          )}
+
+                          {status.processing && (
+                            <span className="status processing">
+                              Identifying movie…
+                            </span>
+                          )}
+
+                          {status.completed && (
+                            <span className="status uploaded">
+                              ✔ Movie identified
+                            </span>
+                          )}
+
+                          {status.error && (
+                            <span className="status error">
+                              {status.error}
+                            </span>
+                          )}
+                        </div>
+
                         {status.uploading && (
-                          <span className="status uploading">
-                            Uploading…
-                          </span>
+                          <div className="progress-wrapper">
+                            <div className="progress-bar">
+                              <div
+                                className="progress-bar-fill"
+                                style={{
+                                  width: `${status.progress}%`,
+                                }}
+                              />
+                            </div>
+
+                            <span className="progress-label">
+                              {status.progress}%
+                            </span>
+                          </div>
                         )}
 
                         {status.processing && (
-                          <span className="status processing">
-                            🤖 Identifying movie…
-                          </span>
-                        )}
+                          <div className="upload-result processing">
+                            <span className="result-icon">
+                              ⏳
+                            </span>
 
-                        {status.completed && (
-                          <span className="status uploaded">
-                            ✔ Movie identified
-                          </span>
-                        )}
-
-                        {status.error && (
-                          <span className="status error">
-                            {status.error}
-                          </span>
+                            <span>
+                              AI is analyzing your clip...
+                            </span>
+                          </div>
                         )}
                       </div>
-
-                      {status.uploading && (
-                        <div className="progress-wrapper">
-                          <div className="progress-bar">
-                            <div
-                              className="progress-bar-fill"
-                              style={{
-                                width: `${status.progress}%`,
-                              }}
-                            />
-                          </div>
-
-                          <span className="progress-label">
-                            {status.progress}%
-                          </span>
-                        </div>
-                      )}
-
-                      {status.processing && (
-                        <div className="upload-result processing">
-                          <span className="result-icon">
-                            ⏳
-                          </span>
-
-                          <span>
-                            AI is analyzing your clip...
-                          </span>
-                        </div>
-                      )}
-
-                      {status.completed && movie && (
-                        <div className="movie-result">
-                          <h3>{movie.title}</h3>
-
-                          {movie.year && (
-                            <p>{movie.year}</p>
-                          )}
-
-                          {movie.director && (
-                            <p>
-                              Director: {movie.director}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      <button
+                        type="button"
+                        className="remove-file-btn"
+                        onClick={() =>
+                          handleRemoveFile(index)
+                        }
+                        title="Remove file">
+                        ✕
+                      </button>
                     </div>
-
-                    <button
-                      type="button"
-                      className="remove-file-btn"
-                      onClick={() =>
-                        handleRemoveFile(index)
-                      }
-                      title="Remove file"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="file-list-header">
-              <h3>
-                {files.length} file
-                {files.length !== 1 ? "s" : ""} selected
-              </h3>
-
-              <div className="file-list-actions">
-                <button
-                  type="button"
-                  className="uploadAllBtn"
-                  onClick={handleUploadAll}
-                >
-                  Upload All
-                </button>
-
-                <span className="total-size">
-                  {(
-                    files.reduce(
-                      (sum, file) => sum + file.size,
-                      0
-                    ) /
-                    1024 /
-                    1024
-                  ).toFixed(2)}{" "}
-                  MB
-                </span>
+                  );
+                })}
               </div>
-            </div>
-          </>
-        ) : (
-          <p className="no-files">
-            No files selected
-          </p>
-        )}
-      </div>
-    </main>
-  </>
-);
+
+              <div className="file-list-header">
+                <h3>
+                  {files.length} file
+                  {files.length !== 1 ? "s" : ""} selected
+                </h3>
+
+                <div className="file-list-actions">
+                  <button
+                    type="button"
+                    className="uploadAllBtn"
+                    onClick={handleUploadAll}
+                  >
+                    Upload All
+                  </button>
+                </div>
+              </div>
+              <div className="upload-result">
+                {status.completed && movie && (
+                  <div className="movie-result">
+                    <h3>{movie.title}</h3>
+
+                    {movie.year && (
+                      <p>Year: {movie.year}</p>
+                    )}
+
+                    {movie.director && (
+                      <p>
+                        Director: {movie.director}
+                      </p>
+                    )}
+                    {movie.genre && (
+                      <p>Movie genre: {movie.genre}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="no-files">
+              No files selected
+            </p>
+          )}
+        </div>
+      </main>
+    </>
+  );
 };
 
 export default Upload;
