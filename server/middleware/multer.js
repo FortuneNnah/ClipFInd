@@ -4,8 +4,12 @@ import fs from 'fs';
 
 const UPLOAD_DIR = path.join(path.resolve(), 'uploads');
 
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// Create the uploads folder if it doesn't exist
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
 
+// Save the video temporarily 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {

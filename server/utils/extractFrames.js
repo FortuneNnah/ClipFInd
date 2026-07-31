@@ -12,7 +12,6 @@ export const extractFrames = (videoPath, outputFolder, duration) => {
 
     ffmpeg(videoPath)
       .output(path.join(outputFolder, "frame-%03d.png"))
-      // Apply the dynamic FPS calculation here
       .outputOptions("-vf", `fps=${dynamicFps}`, "-frames:v", "30")
       .on("start", (commandLine) => {
         console.log("FFmpeg started:");

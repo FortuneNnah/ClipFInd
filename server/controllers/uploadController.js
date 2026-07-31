@@ -40,7 +40,7 @@ const uploadVideo = async (req, res) => {
   let Frames_dir = null;
 
   try {
-    // 1. File Validation
+    // File Validation
     if (!req.file) {
       return res.status(400).json({ 
         error: "Missing File", 
