@@ -336,7 +336,7 @@ const Upload = () => {
             <p className="dragtxt">
               Drag & drop your clip here
             </p>
-            t
+            
             <p className="Or">or</p>
 
             <input
@@ -366,6 +366,7 @@ const Upload = () => {
         <div className="file-list">
           {files.length > 0 ? (
             <>
+              {/* SELECTED FILES */}
               <div className="file-items-container">
                 {files.map((file, index) => {
                   const isOverLimit = file.size > fileSizeLimit;
@@ -377,7 +378,6 @@ const Upload = () => {
                   ).toFixed(2);
 
                   const status = uploadStatuses[index] || {};
-                  const movie = movieResults[index];
 
                   return (
                     <div
@@ -473,13 +473,15 @@ const Upload = () => {
                           </div>
                         )}
                       </div>
+
                       <button
                         type="button"
                         className="remove-file-btn"
                         onClick={() =>
                           handleRemoveFile(index)
                         }
-                        title="Remove file">
+                        title="Remove file"
+                      >
                         ✕
                       </button>
                     </div>
@@ -487,6 +489,7 @@ const Upload = () => {
                 })}
               </div>
 
+              {/* FILE ACTIONS */}
               <div className="file-list-header">
                 <h3>
                   {files.length} file
@@ -499,30 +502,65 @@ const Upload = () => {
                     className="uploadAllBtn"
                     onClick={handleUploadAll}
                   >
-                    Upload All
+                    Upload
                   </button>
                 </div>
               </div>
-              <div className="upload-result">
-                {status.completed && movie && (
-                  <div className="movie-result">
-                    <h3>{movie.title}</h3>
 
-                    {movie.year && (
-                      <p>Year: {movie.year}</p>
-                    )}
+              {/* MOVIE RESULTS */}
+              {Object.keys(movieResults).length > 0 && (
+                <div className="upload-result-container">
 
-                    {movie.director && (
+                  <div className="result-header">
+                    <div>
+                      <h3>Movie Identified</h3>
+
                       <p>
-                        Director: {movie.director}
+                        Here's what we found from your clip.
                       </p>
-                    )}
-                    {movie.genre && (
-                      <p>Movie genre: {movie.genre}</p>
-                    )}
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  <div className="movie-results-list">
+
+                    {Object.entries(movieResults).map(
+                      ([index, movie]) => (
+                        <div
+                          className="movie-result"
+                          key={index}
+                        >
+                          <div className="movie-result-icon">
+                            🎬
+                          </div>
+
+                          <div className="movie-result-info">
+
+                            <h3>
+                              {movie.title}
+                            </h3>
+
+                            {movie.year && (
+                              <p>
+                                <strong>Year:</strong>{" "}
+                                {movie.year}
+                              </p>
+                            )}
+
+                            {movie.director && (
+                              <p>
+                                <strong>Director:</strong>{" "}
+                                {movie.director}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+              )}
             </>
           ) : (
             <p className="no-files">
