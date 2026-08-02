@@ -1,4 +1,5 @@
 import react from "react";
+import logo from "./assets/logo.png"
 import "./App.css";
 
 
@@ -6,7 +7,7 @@ const Header = () => {
     return (
         <div className="header-container">
             <div className="logo">
-                <img src="public/red logo black text.png" alt="ClipFind Logo"></img>
+                <img src={logo} alt="ClipFind Logo"></img>
             </div>
             <div className="navlinks">
                 <li className="link1"><a href="#home">Upload clip</a></li>
