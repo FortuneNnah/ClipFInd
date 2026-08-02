@@ -6,10 +6,7 @@ const Header = () => {
     return (
         <div className="header-container">
             <div className="logo">
-                <h1>
-                    <span className="clip">Clip</span>
-                    <span className="find">Find</span>
-                </h1>
+                <img src="src/assets/red logo black text.png" alt="ClipFind Logo"></img>
             </div>
             <div className="navlinks">
                 <li className="link1"><a href="#home">Upload clip</a></li>

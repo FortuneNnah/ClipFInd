@@ -2,7 +2,7 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  font-family: 'Comorant Garmound', serif;
+  font-family: sans-serif;
 }
 
 body {
@@ -18,7 +18,7 @@ body {
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 40px;
+  padding: 20px;
   font-size: .9rem;
   border-bottom: 1px solid #e5e7eb;
   z-index: 1000;
@@ -42,8 +42,9 @@ body {
   transition: color 0.2s ease;
 }
 
-.logo {
-  font-size: .8rem;
+.logo img {
+  width: 8em;
+  height: auto;
 }
 
 .logo .clip {
@@ -62,7 +63,8 @@ body {
 }
 
 .heading .aitext {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #ff1f1f;
   margin-bottom: 10px;
   letter-spacing: .1em;
@@ -70,36 +72,31 @@ body {
 
 .heading {
   max-width: 500px;
-  margin-top: 20px;
   margin-bottom: 30px;
   text-align: center;
-  /* color: #1a1a1a; */
 }
 
 .heading h1 {
-  font-family: sans;
   font-weight: 700;
-  font-size: 3.6rem;
+  font-size: 3.5rem;
   letter-spacing: -0.03em;
   margin-bottom: 0.2rem;
 }
 
 .heading h2 {
-  font-family: sans;
   font-weight: 700;
-  font-size: 3.6rem;
+  font-size: 3.5rem;
   letter-spacing: -0.03em;
   margin-bottom: 0.7rem;
 }
 
 .heading p {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: #777;
   margin-bottom: 0.7rem;
 }
 
 .heading h2 .clip {
-  font-family: sans;
   color: #ff1f1f;
   /* font-weight: 700 */
 }
@@ -115,7 +112,8 @@ body {
 }
 
 .upload-area {
-  max-width: 600px;
+  max-width: 500px;
+  height: 260px;
   width: 100%;
   border: 2px dashed #cbd5e1;
   border-radius: 28px;
