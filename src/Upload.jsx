@@ -9,7 +9,8 @@ const Upload = () => {
   const [files, setFiles] = useState([]);
   const [uploadStatuses, setUploadStatuses] = useState({});
   const [movieResults, setMovieResults] = useState({});
-
+  const [processingText, setProcessingText] = useState("AI is identifying movie...");
+ 
   const fileSizeLimit = 25 * 1024 * 1024;
 
   const handleclick = () => {
@@ -118,7 +119,7 @@ const Upload = () => {
               uploading: false,
               processing: false,
               uploaded: false,
-              error: "Movie identification failed",
+              error: "Unable to identify movie.",
             },
           }));
         }
@@ -191,7 +192,7 @@ const Upload = () => {
             console.log("Job created:", data.jobId);
 
             if (data.jobId) {
-              // Upload is finished, AI processing has started
+              // AI processing has started
               setUploadStatuses((prev) => ({
                 ...prev,
                 [index]: {
@@ -201,6 +202,15 @@ const Upload = () => {
                   progress: 100,
                 },
               }));
+
+              setProcessingText("AI is identifying movie...");
+
+              setTimeout(() => {
+                setProcessingText("Analyzing scenes...")
+              },2000)
+              setTimeout(() => {
+                setProcessingText("Almost done...")
+              },3500)
 
               // Start polling
               pollJob(data.jobId, index);
@@ -366,7 +376,6 @@ const Upload = () => {
         <div className="file-list">
           {files.length > 0 ? (
             <>
-              {/* SELECTED FILES */}
               <div className="file-items-container">
                 {files.map((file, index) => {
                   const isOverLimit = file.size > fileSizeLimit;
@@ -427,7 +436,7 @@ const Upload = () => {
 
                           {status.processing && (
                             <span className="status processing">
-                              Identifying movie…
+                              {processingText}
                             </span>
                           )}
 
@@ -461,17 +470,17 @@ const Upload = () => {
                           </div>
                         )}
 
-                        {status.processing && (
+                        {/* {status.processing && (
                           <div className="upload-result processing">
                             <span className="result-icon">
                               ⏳
                             </span>
 
-                            <span>
+                            <span className="status processing">
                               AI is analyzing your clip...
                             </span>
                           </div>
-                        )}
+                        )} */}
                       </div>
 
                       <button
