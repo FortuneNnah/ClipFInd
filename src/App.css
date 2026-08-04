@@ -190,6 +190,14 @@ body {
   background: #dc2626;
 }
 
+.uploadBtn:disabled,
+.uploadAllBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .upload-area-inner .note {
   margin-top: 25px;
   color: #999;
