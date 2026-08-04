@@ -398,9 +398,8 @@ const Upload = () => {
               type="button"
               className="uploadBtn"
               id="uploadBtn"
-              disabled={hasActiveUpload}
             >
-              {hasActiveUpload ? "Uploading…" : "Browse files"}
+              Browse Files
             </button>
 
             <p className="note">
@@ -578,9 +577,7 @@ const Upload = () => {
                           <div className="movie-result-icon">
                             🎬
                           </div>
-
                           <div className="movie-result-info">
-
                             <h3>
                               {movie.title}
                             </h3>
