@@ -45,11 +45,10 @@ const History = () => {
 
             return (
               <article className="history-card" key={item.id}>
-                <div className="history-card-details">
+                <div className="history-card-body">
                   <div className="history-card-main">
-                    <div>
+                    <div className="history-card-title-group">
                       <h3>{item.title || item.originalname || item.filename}</h3>
-                      {/* <p className="history-file-name">{item.originalname || item.filename}</p> */}
                     </div>
                     <button
                       type="button"
@@ -59,10 +58,10 @@ const History = () => {
                       Delete
                     </button>
                   </div>
-                  <div className="history-meta-row">
-                    <span>{dateLabel}</span>
-                    <span>{timeLabel}</span>
-                  </div>
+                  {/* <div className="history-meta-row">
+                    <span className="history-meta-pill">{dateLabel}</span>
+                    <span className="history-meta-pill">{timeLabel}</span>
+                  </div> */}
                 </div>
               </article>
             );
