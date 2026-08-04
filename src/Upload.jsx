@@ -316,7 +316,6 @@ const Upload = () => {
     });
   };
 
-  // Upload all selected files
   const handleUploadAll = async () => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -429,9 +428,9 @@ const Upload = () => {
                       className={`file-item ${isOverLimit ? "error" : ""
                         }`}
                     >
-                      <div className="file-item-icon">
+                      {/* <div className="file-item-icon">
                         🎬
-                      </div>
+                      </div> */}
 
                       <div className="file-item-details">
                         <span
@@ -504,18 +503,6 @@ const Upload = () => {
                             </span>
                           </div>
                         )}
-
-                        {/* {status.processing && (
-                          <div className="upload-result processing">
-                            <span className="result-icon">
-                              ⏳
-                            </span>
-
-                            <span className="status processing">
-                              AI is analyzing your clip...
-                            </span>
-                          </div>
-                        )} */}
                       </div>
 
                       <button
@@ -569,35 +556,53 @@ const Upload = () => {
                   <div className="movie-results-list">
 
                     {Object.entries(movieResults).map(
-                      ([index, movie]) => (
-                        <div
-                          className="movie-result"
-                          key={index}
-                        >
-                          <div className="movie-result-icon">
-                            🎬
-                          </div>
-                          <div className="movie-result-info">
-                            <h3>
-                              {movie.title}
-                            </h3>
+                      ([index, movie]) => {
+                        const posterUrl =
+                          typeof movie.poster_path === "string" && movie.poster_path.trim()
+                            ? movie.poster_path
+                            : typeof movie.poster === "string" && movie.poster.trim()
+                              ? movie.poster
+                              : "";
 
-                            {movie.year && (
-                              <p>
-                                <strong>Year:</strong>{" "}
-                                {movie.year}
-                              </p>
-                            )}
+                        return (
+                          <div className="movie-result" key={index}>
+                            <div className="movie-result-icon">
+                              {posterUrl ? (
+                                <img
+                                  src={posterUrl}
+                                  alt={movie.title ? `${movie.title} poster` : "Movie poster"}
+                                />
+                              ) : (
+                                "🎬"
+                              )}
+                            </div>
+                            <div className="movie-result-info">
+                              <h3>{movie.title}</h3>
 
-                            {movie.director && (
-                              <p>
-                                <strong>Director:</strong>{" "}
-                                {movie.director}
-                              </p>
-                            )}
+                              {movie.year && (
+                                <p>
+                                  <strong>Year:</strong>{" "}
+                                  {movie.year}
+                                </p>
+                              )}
+
+                              {movie.director && (
+                                <p>
+                                  <strong>Director:</strong>{" "}
+                                  {movie.director}
+                                </p>
+                              )}
+
+                              {movie.genre && (
+                                <p>
+                                  <strong>Genre:</strong>{" "}
+                                  {movie.genre}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )
+                        );
+                      }
                     )}
 
                   </div>
