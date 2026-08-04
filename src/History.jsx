@@ -49,7 +49,7 @@ const History = () => {
                   <div className="history-card-main">
                     <div>
                       <h3>{item.title || item.originalname || item.filename}</h3>
-                      <p className="history-file-name">{item.originalname || item.filename}</p>
+                      {/* <p className="history-file-name">{item.originalname || item.filename}</p> */}
                     </div>
                     <button
                       type="button"
