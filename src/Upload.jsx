@@ -39,8 +39,13 @@ const Upload = () => {
     }
   };
 
+  const hasActiveUpload = Object.values(uploadStatuses).some(
+    (status) => status?.uploading || status?.processing
+  );
+
   const handleclick = () => {
-    fileInputRef.current.click();
+    if (hasActiveUpload) return;
+    fileInputRef.current?.click();
   };
 
   const handleFiles = (selectedFiles) => {
@@ -393,8 +398,9 @@ const Upload = () => {
               type="button"
               className="uploadBtn"
               id="uploadBtn"
+              disabled={hasActiveUpload}
             >
-              Browse files
+              {hasActiveUpload ? "Uploading…" : "Browse files"}
             </button>
 
             <p className="note">
@@ -540,8 +546,9 @@ const Upload = () => {
                     type="button"
                     className="uploadAllBtn"
                     onClick={handleUploadAll}
+                    disabled={hasActiveUpload}
                   >
-                    Upload
+                    {hasActiveUpload ? "Uploading…" : "Upload"}
                   </button>
                 </div>
               </div>
