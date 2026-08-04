@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import "./App.css";
 
 const API_URL = "https://clipfind-backend.onrender.com/api";
+const HISTORY_KEY = "clipfind-upload-history";
 
 const Upload = () => {
   const fileInputRef = useRef(null);
@@ -12,6 +13,31 @@ const Upload = () => {
   const [processingText, setProcessingText] = useState("AI is identifying movie...");
  
   const fileSizeLimit = 25 * 1024 * 1024;
+
+  const createHistoryItem = (file, movieResult) => ({
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    originalname: file.name,
+    filename: file.name,
+    title: movieResult?.title || file.name,
+    year: movieResult?.year || null,
+    director: movieResult?.director || null,
+    size: file.size,
+    uploadedAt: new Date().toISOString(),
+  });
+
+  const saveHistoryItem = (file, movieResult) => {
+    try {
+      const stored = localStorage.getItem(HISTORY_KEY);
+      const parsed = stored ? JSON.parse(stored) : [];
+      const nextHistory = [
+        createHistoryItem(file, movieResult),
+        ...(Array.isArray(parsed) ? parsed : []),
+      ];
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+    } catch (error) {
+      console.error("Unable to save upload history:", error);
+    }
+  };
 
   const handleclick = () => {
     fileInputRef.current.click();
@@ -55,7 +81,7 @@ const Upload = () => {
   };
 
   // Poll the backend every 3 seconds
-  const pollJob = (jobId, index) => {
+  const pollJob = (jobId, index, file) => {
     console.log("Started polling job:", jobId);
 
     const interval = setInterval(async () => {
@@ -103,6 +129,10 @@ const Upload = () => {
               progress: 100,
             },
           }));
+
+          if (file) {
+            saveHistoryItem(file, data.result);
+          }
 
           return;
         }
@@ -213,7 +243,7 @@ const Upload = () => {
               },3500)
 
               // Start polling
-              pollJob(data.jobId, index);
+              pollJob(data.jobId, index, file);
 
               resolve();
               return;
