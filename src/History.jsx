@@ -58,10 +58,10 @@ const History = () => {
                       Delete
                     </button>
                   </div>
-                  {/* <div className="history-meta-row">
+                  <div className="history-meta-row">
                     <span className="history-meta-pill">{dateLabel}</span>
                     <span className="history-meta-pill">{timeLabel}</span>
-                  </div> */}
+                  </div>
                 </div>
               </article>
             );
