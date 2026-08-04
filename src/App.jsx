@@ -10,8 +10,8 @@ function App() {
     <>
       <Header />
       <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<Upload />} />
+        {/* <Route path="/" element={<Navigate to="/home" replace />} /> */}
+        <Route path="/" element={<Upload />} />
         <Route path="/history" element={<History />} />
       </Routes>
     </>

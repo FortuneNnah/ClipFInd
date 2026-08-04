@@ -10,7 +10,7 @@ const Header = () => {
                 <img src={logo} alt="ClipFind Logo"></img>
             </div>
             <div className="navlinks">
-                <li className="link1"><NavLink to="/home">Upload clip</NavLink></li>
+                <li className="link1"><NavLink to="/">Upload clip</NavLink></li>
                 <li className="link2"><NavLink to="/history">History</NavLink></li>
             </div>
         </div>
