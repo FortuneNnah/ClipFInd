@@ -745,7 +745,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-items: center;
-  gap: 12px;
+  margin-top: 5px;
   min-width: 0;
 }
 
