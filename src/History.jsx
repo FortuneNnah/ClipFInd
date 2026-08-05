@@ -42,9 +42,20 @@ const History = () => {
             const uploadedAt = item.uploadedAt ? new Date(item.uploadedAt) : null;
             const dateLabel = uploadedAt ? uploadedAt.toLocaleDateString() : "Date unavailable";
             const timeLabel = uploadedAt ? uploadedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Time unavailable";
+            const yearofrelease = item.year || item.release_date ? (item.year || item.release_date).split("-")[0] : "Year unavailable";
 
             return (
               <article className="history-card" key={item.id}>
+                {item.poster || item.poster_path ? (
+                  <div className="history-card-thumb">
+                    <img
+                      src={item.poster || item.poster_path}
+                      alt={item.title ? `${item.title} poster` : "Movie poster"}
+                    />
+                  </div>
+                ) : (
+                  <div className="history-card-thumb history-card-thumb-fallback" />
+                )}
                 <div className="history-card-body">
                   <div className="history-card-main">
                     <div className="history-card-title-group">
@@ -54,13 +65,15 @@ const History = () => {
                       type="button"
                       className="history-delete-button"
                       onClick={() => handleDelete(item.id)}
+                      aria-label={`Delete ${item.title || item.originalname || item.filename}`}
                     >
-                      Delete
+                      ✕
                     </button>
                   </div>
                   <div className="history-meta-row">
-                    <span className="history-meta-pill">{dateLabel}</span>
-                    <span className="history-meta-pill">{timeLabel}</span>
+                    <span className="history-meta-pill">Year: {dateLabel}</span>
+                    <span className="history-meta-pill">Release: {yearofrelease}</span>
+                    <span className="history-meta-pill">Time: {timeLabel}</span>
                   </div>
                 </div>
               </article>

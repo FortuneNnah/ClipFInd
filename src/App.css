@@ -580,9 +580,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 0, 0, 0.604);
+  width: 50px;
+  height: 70px;
+  /* background: rgba(255, 0, 0, 0.604); */
   border-radius: 8px;
 }
 
@@ -727,68 +727,65 @@ body {
 .history-card {
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
   gap: 14px;
-  border: 1px solid #f3d0d0;
-  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
   padding: 16px 18px;
-  background: linear-gradient(135deg, #ffffff 0%, #fff7f7 100%);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .history-card:hover {
-  transform: translateY(-2px);
-  border-color: #ff6b6b;
-  box-shadow: 0 16px 30px rgba(255, 31, 31, 0.14);
+  transform: translateY(-1px);
+  border-color: #d1d5db;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
-.history-card-accent {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #ff4d4d 0%, #ff8a8a 100%);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
+.history-card-thumb {
+  width: 100px;
+  height: auto;
   flex-shrink: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f8fafc;
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+}
+
+.history-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.history-card-thumb-fallback {
+  background: linear-gradient(180deg, #f9fafb 0%, #e5e7eb 100%);
 }
 
 .history-card-body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-items: center;
   gap: 12px;
   min-width: 0;
 }
 
 .history-card-main {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .history-card-title-group {
+  display: flex;
   min-width: 0;
   flex: 1;
-}
-
-.history-card-label {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 6px;
-  border-radius: 999px;
-  padding: 3px 8px;
-  background: rgba(255, 31, 31, 0.1);
-  color: #b91c1c;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .history-card-main h3 {
@@ -797,27 +794,34 @@ body {
   color: #111827;
   margin: 0;
   word-break: break-word;
+  line-height: 1.4;
 }
 
 .history-delete-button {
-  border: 1px solid #fecaca;
-  border-radius: 999px;
-  padding: 8px 12px;
-  background: #fff5f5;
-  color: #b91c1c;
-  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
   cursor: pointer;
   flex-shrink: 0;
-  min-height: 40px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 0;
 }
 
 .history-delete-button:hover {
-  background: #ffe1e1;
+  background: #f3f4f6;
+  color: #ef4444;
 }
 
 .history-meta-row {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -825,11 +829,10 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  color: #4b5563;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #6b7280;
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -844,34 +847,26 @@ body {
   }
 
   .history-card {
-    flex-direction: column;
+    flex-direction: row;
+    align-items: flex-start;
     padding: 14px;
   }
 
-  .history-card-accent {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
-
   .history-card-main {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
   }
 
   .history-delete-button {
     align-self: flex-start;
-    width: 100%;
-    justify-content: center;
+    width: 34px;
+    height: 34px;
   }
 
   .history-meta-row {
     flex-direction: column;
-    gap: 6px;
-  }
-
-  .history-meta-pill {
-    justify-content: center;
+    gap: 4px;
   }
 }
 
@@ -983,8 +978,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   background: rgba(255, 0, 0, 0.604);
   border-radius: 8px;
   overflow: hidden;
