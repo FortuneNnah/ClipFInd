@@ -37,6 +37,7 @@ const Upload = () => {
       title: movieResult?.title || file.name,
       year: movieResult?.year || null,
       director: movieResult?.director || null,
+      type: movieResult?.type || null,
       genre: formatGenre(movieResult?.genre),
       poster: posterUrl,
       size: file.size,
