@@ -1,4 +1,6 @@
 import React, { useRef, useState } from "react";
+import { BiMoviePlay } from "react-icons/bi";
+import { BiTrash } from "react-icons/bi";
 import "./App.css";
 
 const API_URL = "https://clipfind-backend.onrender.com/api";
@@ -14,16 +16,26 @@ const Upload = () => {
  
   const fileSizeLimit = 25 * 1024 * 1024;
 
-  const createHistoryItem = (file, movieResult) => ({
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    originalname: file.name,
-    filename: file.name,
-    title: movieResult?.title || file.name,
-    year: movieResult?.year || null,
-    director: movieResult?.director || null,
-    size: file.size,
-    uploadedAt: new Date().toISOString(),
-  });
+  const createHistoryItem = (file, movieResult) => {
+    const posterUrl =
+      typeof movieResult?.poster_path === "string" && movieResult.poster_path.trim()
+        ? movieResult.poster_path
+        : typeof movieResult?.poster === "string" && movieResult.poster.trim()
+        ? movieResult.poster
+        : null;
+
+    return {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      originalname: file.name,
+      filename: file.name,
+      title: movieResult?.title || file.name,
+      year: movieResult?.year || null,
+      director: movieResult?.director || null,
+      poster: posterUrl,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+    };
+  };
 
   const saveHistoryItem = (file, movieResult) => {
     try {
@@ -428,9 +440,12 @@ const Upload = () => {
                       className={`file-item ${isOverLimit ? "error" : ""
                         }`}
                     >
-                      {/* <div className="file-item-icon">
-                        🎬
-                      </div> */}
+                      <div className="file-item-icon">
+                        <BiMoviePlay style={{
+                          "width" : "50px",
+                          "height" : "50px",
+                        }} />
+                      </div>
 
                       <div className="file-item-details">
                         <span
