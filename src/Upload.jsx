@@ -6,6 +6,12 @@ import "./App.css";
 const API_URL = "https://clipfind-backend.onrender.com/api";
 const HISTORY_KEY = "clipfind-upload-history";
 
+const formatGenre = (genre) => {
+  if (Array.isArray(genre)) return genre.join(', ');
+  if (typeof genre === 'string') return genre;
+  return null;
+};
+
 const Upload = () => {
   const fileInputRef = useRef(null);
 
@@ -31,6 +37,7 @@ const Upload = () => {
       title: movieResult?.title || file.name,
       year: movieResult?.year || null,
       director: movieResult?.director || null,
+      genre: formatGenre(movieResult?.genre),
       poster: posterUrl,
       size: file.size,
       uploadedAt: new Date().toISOString(),
@@ -442,7 +449,7 @@ const Upload = () => {
                     >
                       <div className="file-item-icon">
                         <BiMoviePlay style={{
-                          "width" : "50px",
+                          "width" : "30px",
                           "height" : "50px",
                         }} />
                       </div>
@@ -583,7 +590,7 @@ const Upload = () => {
                           <div className="movie-result" key={index}>
                             <div className="movie-result-icon">
                               {posterUrl ? (
-                                <img
+                                <img 
                                   src={posterUrl}
                                   alt={movie.title ? `${movie.title} poster` : "Movie poster"}
                                 />
@@ -608,10 +615,17 @@ const Upload = () => {
                                 </p>
                               )}
 
+                              {movie.type && (
+                                <p>
+                                  <strong>Type:</strong>{" "}
+                                  {movie.type}
+                                </p>
+                              )}
+
                               {movie.genre && (
                                 <p>
                                   <strong>Genre:</strong>{" "}
-                                  {movie.genre}
+                                  {formatGenre(movie.genre)}
                                 </p>
                               )}
                             </div>
