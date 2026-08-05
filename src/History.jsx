@@ -42,9 +42,8 @@ const History = () => {
             const details = item.uploadedAt ? new Date(item.uploadedAt) : null;
             const yearofrelease = item.year || item.release_date ? (item.year || item.release_date).split("-")[0] : "Year unavailable";
             const director = item.director || "Director unavailable";
-            const genre = Array.isArray(item.genre)
-              ? item.genre.join(', ')
-              : item.genre || "Genre unavailable";
+            const genre = Array.isArray(item.genre) ? item.genre.join(', ') : item.genre || "Genre unavailable";
+            const type = item.type || "Type unavailable";
 
             return (
               <article className="history-card" key={item.id}>
@@ -75,6 +74,7 @@ const History = () => {
                   <div className="history-meta-row">
                     <span className="history-meta-pill"><strong>Year:</strong> {yearofrelease}</span>
                     <span className="history-meta-pill"><strong>Director:</strong> {director}</span>
+                    <span className="history-meta-pill"><strong>Type:</strong> {type}</span>
                     <span className="history-meta-pill"><strong>Genre:</strong> {genre}</span>
                   </div>
                 </div>
