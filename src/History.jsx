@@ -39,10 +39,12 @@ const History = () => {
       ) : (
         <div className="history-list">
           {items.map((item) => {
-            const uploadedAt = item.uploadedAt ? new Date(item.uploadedAt) : null;
-            const dateLabel = uploadedAt ? uploadedAt.toLocaleDateString() : "Date unavailable";
-            const timeLabel = uploadedAt ? uploadedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Time unavailable";
+            const details = item.uploadedAt ? new Date(item.uploadedAt) : null;
             const yearofrelease = item.year || item.release_date ? (item.year || item.release_date).split("-")[0] : "Year unavailable";
+            const director = item.director || "Director unavailable";
+            const genre = Array.isArray(item.genre)
+              ? item.genre.join(', ')
+              : item.genre || "Genre unavailable";
 
             return (
               <article className="history-card" key={item.id}>
@@ -71,9 +73,9 @@ const History = () => {
                     </button>
                   </div>
                   <div className="history-meta-row">
-                    <span className="history-meta-pill">Year: {dateLabel}</span>
-                    <span className="history-meta-pill">Release: {yearofrelease}</span>
-                    <span className="history-meta-pill">Time: {timeLabel}</span>
+                    <span className="history-meta-pill"><strong>Year:</strong> {yearofrelease}</span>
+                    <span className="history-meta-pill"><strong>Director:</strong> {director}</span>
+                    <span className="history-meta-pill"><strong>Genre:</strong> {genre}</span>
                   </div>
                 </div>
               </article>
