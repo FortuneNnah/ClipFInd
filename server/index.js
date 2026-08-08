@@ -36,7 +36,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-e
 app.get("/", (req, res) => {
   res.send({ status: "ok", message: "ClipFind Backend is running!" });
 });
