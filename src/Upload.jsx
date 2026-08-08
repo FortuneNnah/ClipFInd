@@ -1,7 +1,16 @@
 import React, { useRef, useState } from "react";
+import { BiMoviePlay } from "react-icons/bi";
+import { BiTrash } from "react-icons/bi";
 import "./App.css";
 
 const API_URL = "https://clipfind-backend.onrender.com/api";
+const HISTORY_KEY = "clipfind-upload-history";
+
+const formatGenre = (genre) => {
+  if (Array.isArray(genre)) return genre.join(', ');
+  if (typeof genre === 'string') return genre;
+  return null;
+};
 
 const Upload = () => {
   const fileInputRef = useRef(null);
@@ -9,11 +18,54 @@ const Upload = () => {
   const [files, setFiles] = useState([]);
   const [uploadStatuses, setUploadStatuses] = useState({});
   const [movieResults, setMovieResults] = useState({});
-
+  const [processingText, setProcessingText] = useState("AI is identifying movie...");
+ 
   const fileSizeLimit = 25 * 1024 * 1024;
 
+  const createHistoryItem = (file, movieResult) => {
+    const posterUrl =
+      typeof movieResult?.poster_path === "string" && movieResult.poster_path.trim()
+        ? movieResult.poster_path
+        : typeof movieResult?.poster === "string" && movieResult.poster.trim()
+        ? movieResult.poster
+        : null;
+
+    return {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      originalname: file.name,
+      filename: file.name,
+      title: movieResult?.title || file.name,
+      year: movieResult?.year || null,
+      director: movieResult?.director || null,
+      type: movieResult?.type || null,
+      genre: formatGenre(movieResult?.genre),
+      poster: posterUrl,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+    };
+  };
+
+  const saveHistoryItem = (file, movieResult) => {
+    try {
+      const stored = localStorage.getItem(HISTORY_KEY);
+      const parsed = stored ? JSON.parse(stored) : [];
+      const nextHistory = [
+        createHistoryItem(file, movieResult),
+        ...(Array.isArray(parsed) ? parsed : []),
+      ];
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+    } catch (error) {
+      console.error("Unable to save upload history:", error);
+    }
+  };
+
+  const hasActiveUpload = Object.values(uploadStatuses).some(
+    (status) => status?.uploading || status?.processing
+  );
+
   const handleclick = () => {
-    fileInputRef.current.click();
+    if (hasActiveUpload) return;
+    fileInputRef.current?.click();
   };
 
   const handleFiles = (selectedFiles) => {
@@ -54,7 +106,7 @@ const Upload = () => {
   };
 
   // Poll the backend every 3 seconds
-  const pollJob = (jobId, index) => {
+  const pollJob = (jobId, index, file) => {
     console.log("Started polling job:", jobId);
 
     const interval = setInterval(async () => {
@@ -103,6 +155,10 @@ const Upload = () => {
             },
           }));
 
+          if (file) {
+            saveHistoryItem(file, data.result);
+          }
+
           return;
         }
 
@@ -118,7 +174,7 @@ const Upload = () => {
               uploading: false,
               processing: false,
               uploaded: false,
-              error: "Movie identification failed",
+              error: "Unable to identify movie.",
             },
           }));
         }
@@ -191,7 +247,7 @@ const Upload = () => {
             console.log("Job created:", data.jobId);
 
             if (data.jobId) {
-              // Upload is finished, AI processing has started
+              // AI processing has started
               setUploadStatuses((prev) => ({
                 ...prev,
                 [index]: {
@@ -202,8 +258,17 @@ const Upload = () => {
                 },
               }));
 
+              setProcessingText("AI is identifying movie...");
+
+              setTimeout(() => {
+                setProcessingText("Analyzing scenes...")
+              },2000)
+              setTimeout(() => {
+                setProcessingText("Almost done...")
+              },3500)
+
               // Start polling
-              pollJob(data.jobId, index);
+              pollJob(data.jobId, index, file);
 
               resolve();
               return;
@@ -271,7 +336,6 @@ const Upload = () => {
     });
   };
 
-  // Upload all selected files
   const handleUploadAll = async () => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -336,7 +400,7 @@ const Upload = () => {
             <p className="dragtxt">
               Drag & drop your clip here
             </p>
-            t
+            
             <p className="Or">or</p>
 
             <input
@@ -354,7 +418,7 @@ const Upload = () => {
               className="uploadBtn"
               id="uploadBtn"
             >
-              Browse files
+              Browse Files
             </button>
 
             <p className="note">
@@ -377,7 +441,6 @@ const Upload = () => {
                   ).toFixed(2);
 
                   const status = uploadStatuses[index] || {};
-                  const movie = movieResults[index];
 
                   return (
                     <div
@@ -386,7 +449,10 @@ const Upload = () => {
                         }`}
                     >
                       <div className="file-item-icon">
-                        🎬
+                        <BiMoviePlay style={{
+                          "width" : "30px",
+                          "height" : "50px",
+                        }} />
                       </div>
 
                       <div className="file-item-details">
@@ -427,7 +493,7 @@ const Upload = () => {
 
                           {status.processing && (
                             <span className="status processing">
-                              Identifying movie…
+                              {processingText}
                             </span>
                           )}
 
@@ -460,26 +526,16 @@ const Upload = () => {
                             </span>
                           </div>
                         )}
-
-                        {status.processing && (
-                          <div className="upload-result processing">
-                            <span className="result-icon">
-                              ⏳
-                            </span>
-
-                            <span>
-                              AI is analyzing your clip...
-                            </span>
-                          </div>
-                        )}
                       </div>
+
                       <button
                         type="button"
                         className="remove-file-btn"
                         onClick={() =>
                           handleRemoveFile(index)
                         }
-                        title="Remove file">
+                        title="Remove file"
+                      >
                         ✕
                       </button>
                     </div>
@@ -487,6 +543,7 @@ const Upload = () => {
                 })}
               </div>
 
+              {/* FILE ACTIONS */}
               <div className="file-list-header">
                 <h3>
                   {files.length} file
@@ -498,31 +555,90 @@ const Upload = () => {
                     type="button"
                     className="uploadAllBtn"
                     onClick={handleUploadAll}
+                    disabled={hasActiveUpload}
                   >
-                    Upload All
+                    {hasActiveUpload ? "Uploading…" : "Upload"}
                   </button>
                 </div>
               </div>
-              <div className="upload-result">
-                {status.completed && movie && (
-                  <div className="movie-result">
-                    <h3>{movie.title}</h3>
 
-                    {movie.year && (
-                      <p>Year: {movie.year}</p>
-                    )}
+              {/* MOVIE RESULTS */}
+              {Object.keys(movieResults).length > 0 && (
+                <div className="upload-result-container">
 
-                    {movie.director && (
+                  <div className="result-header">
+                    <div>
+                      <h3>Movie Identified</h3>
+
                       <p>
-                        Director: {movie.director}
+                        Here's what we found from your clip.
                       </p>
-                    )}
-                    {movie.genre && (
-                      <p>Movie genre: {movie.genre}</p>
-                    )}
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  <div className="movie-results-list">
+
+                    {Object.entries(movieResults).map(
+                      ([index, movie]) => {
+                        const posterUrl =
+                          typeof movie.poster_path === "string" && movie.poster_path.trim()
+                            ? movie.poster_path
+                            : typeof movie.poster === "string" && movie.poster.trim()
+                              ? movie.poster
+                              : "";
+
+                        return (
+                          <div className="movie-result" key={index}>
+                            <div className="movie-result-icon">
+                              {posterUrl ? (
+                                <img 
+                                  src={posterUrl}
+                                  alt={movie.title ? `${movie.title} poster` : "Movie poster"}
+                                />
+                              ) : (
+                                "🎬"
+                              )}
+                            </div>
+                            <div className="movie-result-info">
+                              <h3>{movie.title}</h3>
+
+                              {movie.year && (
+                                <p>
+                                  <strong>Year:</strong>{" "}
+                                  {movie.year}
+                                </p>
+                              )}
+
+                              {movie.director && (
+                                <p>
+                                  <strong>Director:</strong>{" "}
+                                  {movie.director}
+                                </p>
+                              )}
+
+                              {movie.type && (
+                                <p>
+                                  <strong>Type:</strong>{" "}
+                                  {movie.type}
+                                </p>
+                              )}
+
+                              {movie.genre && (
+                                <p>
+                                  <strong>Genre:</strong>{" "}
+                                  {formatGenre(movie.genre)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+
+                  </div>
+
+                </div>
+              )}
             </>
           ) : (
             <p className="no-files">
