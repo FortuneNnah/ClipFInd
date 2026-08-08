@@ -1,22 +1,20 @@
-import react from "react";
+import React from "react";
+import { NavLink } from "react-router-dom";
+import logo from "./assets/logo.png";
 import "./App.css";
-
 
 const Header = () => {
     return (
         <div className="header-container">
             <div className="logo">
-                <h1>
-                    <span className="clip">Clip</span>
-                    <span className="find">Find</span>
-                </h1>
+                <img src={logo} alt="ClipFind Logo"></img>
             </div>
             <div className="navlinks">
-                <li className="link1"><a href="#home">Upload clip</a></li>
-                <li className="link2"><a href="#history">History</a></li>
+                <li className="link1"><NavLink to="/">Upload clip</NavLink></li>
+                <li className="link2"><NavLink to="/history">History</NavLink></li>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default Header;
