@@ -135,7 +135,7 @@ export const uploadFromUrl = async (req, res) => {
       let customErrorMessage = "Failed to process the social media link.";
       
       if (error.status === 503 || (error.message && error.message.includes("high demand"))) {
-        customErrorMessage = "Google AI servers are currently overloaded. Please try again.";
+        customErrorMessage = "We are currently experiencing high demand. Please try again later.";
       }
 
       await Job.findByIdAndUpdate(newJob._id, { 
