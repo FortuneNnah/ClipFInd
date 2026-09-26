@@ -5,8 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node server",
-    "dev": "nodemon server"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.1079.0",
@@ -20,6 +20,7 @@
     "mongoose": "^9.7.3",
     "multer": "^1.4.5-lts.1",
     "opensubtitles.com": "^1.1.0",
+    "youtube-dl-exec": "^3.1.15",
     "zod": "^4.4.3"
   },
   "devDependencies": {

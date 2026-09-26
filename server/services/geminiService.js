@@ -13,29 +13,25 @@ const tmdbGenreMap = {
   10765: "Sci-Fi & Fantasy", 10766: "Soap", 10767: "Talk", 10768: "War & Politics", 10770: "TV Movie"
 };
 
-// Helper function to pause the loop for a few seconds
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const identifyVideoWithGemini = async (videoPath) => {
   try {
     console.log("Uploading video directly to Gemini...");
     
-    //  Upload the raw .mp4 file to Google
     let uploadResult = await ai.files.upload({ 
       file: videoPath,
       config: { mimeType: "video/mp4" }
     });
     console.log(`Uploaded video file: ${uploadResult.name}`);
 
-    // Wait for Google to finish processing the video
     while (!uploadResult.state || uploadResult.state.toString() !== "ACTIVE") {
       console.log("Processing video on Google's servers...");
-      await sleep(4000); // Wait 4 seconds before checking again
+      await sleep(4000); 
       uploadResult = await ai.files.get({ name: uploadResult.name });
     }
     console.log("Video processing complete. Asking Gemini for a match...");
 
-    // Ask Gemini to analyze the video and force a strict JSON response
     const prompt = `
       Watch this video carefully. Identify the single most accurate movie or TV show. 
       You are strictly forbidden from providing a list.

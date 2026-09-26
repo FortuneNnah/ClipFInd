@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import cors from "cors";
 import mongoose from "mongoose";
-import { uploadVideo } from "./controllers/uploadController.js"; 
+import { uploadVideo, uploadFromUrl } from "./controllers/uploadController.js";
 import { getJob } from "./controllers/jobController.js"; 
 
 const __dirname = path.resolve();
@@ -42,6 +42,8 @@ app.get("/", (req, res) => {
 
 
 app.post("/api/upload", upload.single("video"), uploadVideo);
+
+app.post("/api/upload-url", uploadFromUrl);
 
 
 app.get("/api/job/:id", getJob);
