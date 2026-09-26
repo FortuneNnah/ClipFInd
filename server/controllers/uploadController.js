@@ -117,18 +117,17 @@ export const uploadFromUrl = async (req, res) => {
    // 3. Process the video in the background
     let downloadedFilePath = null;
     try {
-      // Step A: Download the video
+      //  Download the video
       downloadedFilePath = await downloadSocialVideo(videoUrl, UPLOAD_DIR);
 
-      // ADD THIS CHECK: Ensure the file actually downloaded before continuing
       if (!downloadedFilePath) {
          throw new Error("Download completed but file was not found.");
       }
 
-      // Step B: Send the newly downloaded file to Gemini
+      // Send the newly downloaded file to Gemini
       const result = await identifyVideoWithGemini(downloadedFilePath);
 
-      // Step C: Update the MongoDB job with the final movie data
+      // Update the MongoDB job with the final movie data
       await Job.findByIdAndUpdate(newJob._id, { status: "completed", result });
 
     } catch (error) {
@@ -144,7 +143,7 @@ export const uploadFromUrl = async (req, res) => {
         result: { error: customErrorMessage } 
       });
     } finally {
-      // Step D: Always delete the temporary file from the server
+      //  Always delete the temporary file from the server
       if (downloadedFilePath) cleanupFiles(downloadedFilePath);
     }
   } catch (err) {
