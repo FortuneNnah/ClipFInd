@@ -1,8 +1,18 @@
 import Job from '../models/Job.js';
-import { identifyVideoWithGemini } from '../services/geminiService.js'; 
+import { identifyVideoWithGemini } from '../services/geminiService.js';
+import { downloadSocialVideo } from '../utils/downloadSocialVideo.js'; 
 import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ffprobePath from 'ffprobe-static';
+import path from 'path';
+
+const __dirname = path.resolve();
+const UPLOAD_DIR = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
 
 ffmpeg.setFfprobePath(ffprobePath.path);
 
@@ -87,5 +97,61 @@ const uploadVideo = async (req, res) => {
     }
   }
 };
+
+
+export const uploadFromUrl = async (req, res) => {
+  try {
+    const { videoUrl } = req.body;
+
+    if (!videoUrl) {
+      return res.status(400).json({ success: false, message: "No URL provided" });
+    }
+
+    // 1. Create the Database Job Immediately
+    const newJob = new Job({ status: "processing" });
+    await newJob.save();
+    
+    // 2. Respond to Postman/Frontend instantly
+    res.status(202).json({ message: "URL processing started", jobId: newJob._id });
+
+   // 3. Process the video in the background
+    let downloadedFilePath = null;
+    try {
+      // Step A: Download the video
+      downloadedFilePath = await downloadSocialVideo(videoUrl, UPLOAD_DIR);
+
+      // ADD THIS CHECK: Ensure the file actually downloaded before continuing
+      if (!downloadedFilePath) {
+         throw new Error("Download completed but file was not found.");
+      }
+
+      // Step B: Send the newly downloaded file to Gemini
+      const result = await identifyVideoWithGemini(downloadedFilePath);
+
+      // Step C: Update the MongoDB job with the final movie data
+      await Job.findByIdAndUpdate(newJob._id, { status: "completed", result });
+
+    } catch (error) {
+      console.error("Background URL AI failed:", error);
+      let customErrorMessage = "Failed to process the social media link.";
+      
+      if (error.status === 503 || (error.message && error.message.includes("high demand"))) {
+        customErrorMessage = "Google AI servers are currently overloaded. Please try again.";
+      }
+
+      await Job.findByIdAndUpdate(newJob._id, { 
+        status: "failed", 
+        result: { error: customErrorMessage } 
+      });
+    } finally {
+      // Step D: Always delete the temporary file from the server
+      if (downloadedFilePath) cleanupFiles(downloadedFilePath);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to initiate URL job" });
+  }
+};
+
 
 export { uploadVideo };
