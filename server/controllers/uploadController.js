@@ -1,13 +1,22 @@
 import Job from '../models/Job.js';
-import { extractFrames } from '../utils/extractFrames.js';
-import { searchByDialogue } from '../services/tmdb.js'; 
+import { identifyVideoWithGemini } from '../services/geminiService.js';
+import { downloadSocialVideo } from '../utils/downloadSocialVideo.js'; 
 import fs from 'fs';
-import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import ffprobePath from 'ffprobe-static';
+import path from 'path';
+
+const __dirname = path.resolve();
+const UPLOAD_DIR = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
 
 ffmpeg.setFfprobePath(ffprobePath.path);
 
+// Keep the duration check so people don't upload massive files
 const getVideoDuration = (filePath) => {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(filePath, (err, metadata) => {
@@ -17,18 +26,12 @@ const getVideoDuration = (filePath) => {
   });
 };
 
-// Cleanup function to wipe local files immediately after use
-const cleanupFiles = (filePath, Frames_dir) => {
+// Streamlined cleanup: Only needs to delete the video!
+const cleanupFiles = (filePath) => {
   try {
-    const audioPath = filePath.replace(/\.[^/.]+$/, '.wav');
-    const compressedPath = filePath.replace(/\.[^/.]+$/, '_compressed.mp3');
-
-    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
-    if (fs.existsSync(compressedPath)) fs.unlinkSync(compressedPath);
-    if (fs.existsSync(Frames_dir)) {
-      fs.rmSync(Frames_dir, { recursive: true, force: true });
-      console.log(`Successfully deleted temporary frames folder: ${Frames_dir}`);
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`Successfully deleted temporary video from Render disk: ${filePath}`);
     }
   } catch (err) {
     console.error('Cleanup error:', err);
@@ -37,106 +40,117 @@ const cleanupFiles = (filePath, Frames_dir) => {
 
 const uploadVideo = async (req, res) => {
   let videoPath = null;
-  let Frames_dir = null;
 
   try {
-    // File Validation
+    // 1. File Validation
     if (!req.file) {
-      return res.status(400).json({ 
-        error: "Missing File", 
-        message: "Please select a video file to upload." 
-      });
+      return res.status(400).json({ error: "Missing File", message: "Please select a video file." });
     }
 
     const filename = req.file.filename;
-    const originalFilename = req.file.originalname;
     videoPath = req.file.path; 
 
-    // Duration Check
+    // 2. Duration Check
     const duration = await getVideoDuration(videoPath);
-    console.log(`Uploaded video duration: ${duration} seconds`);
-
     if (duration > 180) {
-      if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-      return res.status(400).json({ 
-        error: "File Too Large", 
-        message: "Your clip is over 3 minutes. Please trim it and try again." 
-      });
+      cleanupFiles(videoPath); 
+      return res.status(400).json({ error: "File Too Large", message: "Your clip is over 3 minutes. Please trim it." });
     }
 
-    // Setup Temp Frames Directory
-    const uploadId = Date.now();
-    Frames_dir = path.join(path.resolve(), 'frames', `upload-${uploadId}`);
-    fs.mkdirSync(Frames_dir, { recursive: true });
-
-    // Extract Frames
-    await extractFrames(videoPath, Frames_dir, duration);
-    const frames = fs.readdirSync(Frames_dir);
-    console.log("Frames found:", frames.length);
-
-    const framePaths = frames.map(frame => path.join(Frames_dir, frame));
-
-    //  Create and Save Pending Job
+    // 3. Create and Save Pending Job
     const newJob = new Job({
       filename,
-      frames: [],
       status: 'processing',
       result: null
     });
     await newJob.save();
 
-  
-    res.status(202).json({
-      message: "Processing started",
-      jobId: newJob._id
-    });
+    // 4. Respond immediately to the frontend
+    res.status(202).json({ message: "Processing started", jobId: newJob._id });
 
-    
-    console.log('Deploying Streamlined Visual Matcher...');
-    searchByDialogue("", [], originalFilename, framePaths)
-      .then(async (matchResults) => {
-        const bestMatch = (matchResults && matchResults.length > 0) ? matchResults[0] : null;
-        
-        if (bestMatch && !bestMatch.director) {
-          bestMatch.director = "Unknown";
-        }
+    // 5. Background AI Processing with Gemini
+    console.log('Deploying Gemini Vision Matcher...');
+    identifyVideoWithGemini(videoPath)
+      .then(async (bestMatch) => {
+        if (bestMatch && !bestMatch.director) bestMatch.director = "Unknown";
         
         await Job.findByIdAndUpdate(newJob._id, {
-          movies: matchResults || [],
           result: bestMatch,
-          status: bestMatch ? 'completed' : 'failed'
+          status: bestMatch?.foundMatch ? 'completed' : 'failed'
         });
         console.log(`Job ${newJob._id} completed processing.`);
       })
       .catch(async (err) => {
-        console.error("Background AI failed:", err.message || err);
-        
-        const failureReason = err.code === 'ECONNRESET' || err.name === 'APIConnectionError'
-          ? "Network error. Please check your internet connection and try again."
-          : (err.message || "AI Analysis Failed");
-
-        await Job.findByIdAndUpdate(newJob._id, { 
-          status: 'failed',
-          error: failureReason 
-        }).catch(() => {});
+        console.error("Background AI failed:", err);
+        await Job.findByIdAndUpdate(newJob._id, { status: 'failed', error: "AI Analysis Failed" }).catch(() => {});
       })
       .finally(() => {
-        cleanupFiles(videoPath, Frames_dir);
+        // Automatically wipes the video off the server right after AI processing!
+        cleanupFiles(videoPath);
       });
 
   } catch (error) {
     console.error("Critical Upload Failure:", error);
-    if (videoPath || Frames_dir) {
-      cleanupFiles(videoPath, Frames_dir);
-    }
-
+    cleanupFiles(videoPath);
     if (!res.headersSent) {
-      res.status(502).json({ 
-        error: "Processing Error", 
-        message: "The AI analysis engine is currently unavailable. Please try again in a moment."  
-      });
+      res.status(502).json({ error: "Processing Error", message: "Please try again." });
     }
   }
 };
+
+
+export const uploadFromUrl = async (req, res) => {
+  try {
+    const { videoUrl } = req.body;
+
+    if (!videoUrl) {
+      return res.status(400).json({ success: false, message: "No URL provided" });
+    }
+
+    // 1. Create the Database Job Immediately
+    const newJob = new Job({ status: "processing" });
+    await newJob.save();
+    
+    // 2. Respond to Postman/Frontend instantly
+    res.status(202).json({ message: "URL processing started", jobId: newJob._id });
+
+   // 3. Process the video in the background
+    let downloadedFilePath = null;
+    try {
+      //  Download the video
+      downloadedFilePath = await downloadSocialVideo(videoUrl, UPLOAD_DIR);
+
+      if (!downloadedFilePath) {
+         throw new Error("Download completed but file was not found.");
+      }
+
+      // Send the newly downloaded file to Gemini
+      const result = await identifyVideoWithGemini(downloadedFilePath);
+
+      // Update the MongoDB job with the final movie data
+      await Job.findByIdAndUpdate(newJob._id, { status: "completed", result });
+
+    } catch (error) {
+      console.error("Background URL AI failed:", error);
+      let customErrorMessage = "Failed to process the social media link.";
+      
+      if (error.status === 503 || (error.message && error.message.includes("high demand"))) {
+        customErrorMessage = "We are currently experiencing high demand. Please try again later.";
+      }
+
+      await Job.findByIdAndUpdate(newJob._id, { 
+        status: "failed", 
+        result: { error: customErrorMessage } 
+      });
+    } finally {
+      //  Always delete the temporary file from the server
+      if (downloadedFilePath) cleanupFiles(downloadedFilePath);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to initiate URL job" });
+  }
+};
+
 
 export { uploadVideo };
