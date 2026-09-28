@@ -152,7 +152,9 @@ body {
 .linkInput{
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
 }
 
 .upload-area-inner .dragtxt {
@@ -177,9 +179,10 @@ body {
 }
 
 .upload-area input[type='text'] {
+  min-width: 0;
+  flex: 1;
   padding: 8px;
   font-size: 15px;
-  margin-left: 50px;
 }
 
 .uploadBtn {
@@ -196,12 +199,14 @@ body {
 }
 
 .uploadBtn2 {
+  flex-shrink: 0;
   border-radius: 10px;
   border: none;
   font-size: 12px;
   padding: 12px 30px;
   background: #ff1f1f;
   color: #fff;
+  cursor: pointer;
 
 }
 
@@ -669,6 +674,21 @@ body {
 
   .upload-area input[type='video'] {
     max-width: 100%;
+  }
+
+  .upload-area {
+    height: auto;
+    min-height: 300px;
+  }
+
+  .linkInput {
+    flex-direction: column;
+    max-width: 320px;
+  }
+
+  .upload-area input[type='text'],
+  .uploadBtn2 {
+    width: 100%;
   }
 }
 
