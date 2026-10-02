@@ -111,7 +111,7 @@ export const uploadFromUrl = async (req, res) => {
     const newJob = new Job({ status: "processing" });
     await newJob.save();
     
-    // 2. Respond to Postman/Frontend instantly
+    // 2. Respond to Frontend instantly
     res.status(202).json({ message: "URL processing started", jobId: newJob._id });
 
    // 3. Process the video in the background
