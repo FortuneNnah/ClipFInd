@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
 import { BiMoviePlay } from "react-icons/bi";
-import { BiTrash } from "react-icons/bi";
 import "./App.css";
 
 const API_URL = "https://clipfind-backend.onrender.com/api";
@@ -14,12 +13,13 @@ const formatGenre = (genre) => {
 
 const Upload = () => {
   const fileInputRef = useRef(null);
+  const linkInputRef = useRef(null);
 
   const [files, setFiles] = useState([]);
   const [uploadStatuses, setUploadStatuses] = useState({});
   const [movieResults, setMovieResults] = useState({});
   const [processingText, setProcessingText] = useState("AI is identifying movie...");
- 
+
   const fileSizeLimit = 25 * 1024 * 1024;
 
   const createHistoryItem = (file, movieResult) => {
@@ -27,8 +27,8 @@ const Upload = () => {
       typeof movieResult?.poster_path === "string" && movieResult.poster_path.trim()
         ? movieResult.poster_path
         : typeof movieResult?.poster === "string" && movieResult.poster.trim()
-        ? movieResult.poster
-        : null;
+          ? movieResult.poster
+          : null;
 
     return {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -104,6 +104,77 @@ const Upload = () => {
       return next;
     });
   };
+
+  const handleuploadlink = async () => {
+    if (hasActiveUpload) return;
+
+    const videoUrl = linkInputRef.current?.value.trim();
+    if (!videoUrl) return;
+
+    try {
+      new URL(videoUrl);
+    } catch {
+      window.alert("Please enter a valid video URL.");
+      return;
+    }
+
+    const index = files.length;
+    const linkFile = {
+      name: videoUrl,
+      size: 0,
+      type: "video/link",
+    };
+
+    setFiles((prevFiles) => [...prevFiles, linkFile]);
+    setUploadStatuses((prev) => ({
+      ...prev,
+      [index]: {
+        uploading: true,
+        processing: false,
+        uploaded: false,
+        progress: 0,
+      },
+    }));
+
+    try {
+      const response = await fetch(`${API_URL}/upload-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.jobId) {
+        throw new Error(data.message || data.error || "Unable to submit video URL.");
+      }
+
+      linkInputRef.current.value = "";
+      setUploadStatuses((prev) => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          uploading: false,
+          processing: true,
+          progress: 100,
+        },
+      }));
+      setProcessingText("AI is identifying movie...");
+      pollJob(data.jobId, index, linkFile);
+    } catch (error) {
+      console.error("Link upload failed:", error);
+      setUploadStatuses((prev) => ({
+        ...prev,
+        [index]: {
+          uploading: false,
+          processing: false,
+          uploaded: false,
+          error: error.message,
+        },
+      }));
+    }
+  };
+
+
 
   // Poll the backend every 3 seconds
   const pollJob = (jobId, index, file) => {
@@ -262,10 +333,10 @@ const Upload = () => {
 
               setTimeout(() => {
                 setProcessingText("Analyzing scenes...")
-              },2000)
+              }, 2000)
               setTimeout(() => {
                 setProcessingText("Almost done...")
-              },3500)
+              }, 3500)
 
               // Start polling
               pollJob(data.jobId, index, file);
@@ -397,10 +468,21 @@ const Upload = () => {
               ⬇
             </div>
 
-            <p className="dragtxt">
-              Drag & drop your clip here
-            </p>
-            
+            <div className="linkInput">
+              <input
+                type="text"
+                placeholder="Paste link here"
+                ref={linkInputRef}
+              />
+              <button
+                onClick={handleuploadlink}
+                className="uploadBtn2"
+                type="button"
+                id="uploadBtn2">
+                  Upload link
+              </button>
+            </div>
+
             <p className="Or">or</p>
 
             <input
@@ -450,8 +532,8 @@ const Upload = () => {
                     >
                       <div className="file-item-icon">
                         <BiMoviePlay style={{
-                          "width" : "30px",
-                          "height" : "50px",
+                          "width": "30px",
+                          "height": "50px",
                         }} />
                       </div>
 
@@ -591,7 +673,7 @@ const Upload = () => {
                           <div className="movie-result" key={index}>
                             <div className="movie-result-icon">
                               {posterUrl ? (
-                                <img 
+                                <img
                                   src={posterUrl}
                                   alt={movie.title ? `${movie.title} poster` : "Movie poster"}
                                 />

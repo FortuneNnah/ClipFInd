@@ -2,7 +2,7 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  font-family: sans-serif;
+  font-family: sans-se  rif;
 }
 
 body {
@@ -112,7 +112,7 @@ body {
 
 .upload-area {
   max-width: 500px;
-  height: 260px;
+  height: 300px;
   width: 100%;
   border: 2px dashed #cbd5e1;
   border-radius: 28px;
@@ -146,7 +146,15 @@ body {
   font-weight: 700;
   text-shadow: 0 0 0.5px rgba(29, 78, 216, 0.35);
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 13px;
+}
+
+.linkInput{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
 }
 
 .upload-area-inner .dragtxt {
@@ -170,9 +178,16 @@ body {
   display: none;
 }
 
+.upload-area input[type='text'] {
+  min-width: 0;
+  flex: 1;
+  padding: 8px;
+  font-size: 15px;
+}
+
 .uploadBtn {
   background: #ff1f1f;
-  color: white;
+  color: #fff;
   border: none;
   padding: 12px 35px;
   border-radius: 40px;
@@ -181,6 +196,18 @@ body {
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(255, 31, 31, 0.2);
   transition: 0.3s;
+}
+
+.uploadBtn2 {
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: none;
+  font-size: 12px;
+  padding: 12px 30px;
+  background: #ff1f1f;
+  color: #fff;
+  cursor: pointer;
+
 }
 
 .uploadBtn:hover {
@@ -196,7 +223,7 @@ body {
 }
 
 .upload-area-inner .note {
-  margin-top: 25px;
+  margin-top: 35px;
   color: #999;
   font-size: 15px;
 }
@@ -647,6 +674,21 @@ body {
 
   .upload-area input[type='video'] {
     max-width: 100%;
+  }
+
+  .upload-area {
+    height: auto;
+    min-height: 300px;
+  }
+
+  .linkInput {
+    flex-direction: column;
+    max-width: 320px;
+  }
+
+  .upload-area input[type='text'],
+  .uploadBtn2 {
+    width: 100%;
   }
 }
 
