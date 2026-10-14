@@ -25,7 +25,7 @@ const downloadTikTok = async (url, outputPath) => {
 // yt-dlp downloader for Twitter/X and other platforms
 const downloadWithYtDlp = async (url, outputPath) => {
   console.log('[DOWNLOADER] Using yt-dlp for:', url);
-  const command = `yt-dlp --js-runtimes nodejs -f "best[ext=mp4]/best" -o "${outputPath}" "${url}"`;
+  const command = `yt-dlp --js-runtimes node -f "best[ext=mp4]/best" -o "${outputPath}" "${url}"`;
   
   const { stdout, stderr } = await execAsync(command);
   if (stdout) console.log('[yt-dlp]', stdout);
