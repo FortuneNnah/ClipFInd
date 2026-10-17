@@ -6,40 +6,51 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-// TikTok downloader using TIKWM
+// TikTok downloader using RapidAPI proxy
 const downloadTikTok = async (url, outputPath) => {
-  console.log('[DOWNLOADER] Using TIKWM for TikTok...');
-  const apiRes = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+  console.log('[DOWNLOADER] Fetching TikTok via RapidAPI proxy...');
   
-  // Read as raw text first so it doesn't crash if it's not JSON
-  const rawText = await apiRes.text(); 
-  
-  let data;
-  try {
-    data = JSON.parse(rawText);
-  } catch (err) {
-    console.error('[DOWNLOADER] TikWM blocked the request. Raw response:', rawText.substring(0, 200));
-    throw new Error('TIKWM extraction failed due to IP block');
+  const options = {
+    method: 'GET',
+    url: 'https://social-media-video-downloader.p.rapidapi.com/tiktok/v3/post/details',
+    params: { url },
+    headers: {
+      'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+      'x-rapidapi-host': 'social-media-video-downloader.p.rapidapi.com'
+    }
+  };
+
+  const response = await axios.request(options);
+  const data = response.data;
+
+  // Extract direct video URL from API response
+  const directUrl =
+    data?.contents?.[0]?.videos?.[0]?.url ||
+    data?.contents?.[0]?.renderableVideos?.[0]?.url ||
+    data?.data?.play ||
+    data?.play;
+
+  if (!directUrl) {
+    console.error('[DOWNLOADER] RapidAPI TikTok response:', JSON.stringify(data).slice(0, 300));
+    throw new Error('RapidAPI returned no playable video URL.');
   }
 
-  if (!data.data?.play) throw new Error('TIKWM extraction failed: No play URL found');
-
-  // Stream with Axios to prevent RAM crashes on Render
+  // Stream video directly to disk to prevent RAM exhaustion
   const videoRes = await axios({
-    url: data.data.play,
-    method: "GET",
-    responseType: "stream"
+    url: directUrl,
+    method: 'GET',
+    responseType: 'stream'
   });
 
   const writer = fs.createWriteStream(outputPath);
   videoRes.data.pipe(writer);
 
   await new Promise((resolve, reject) => {
-    writer.on("finish", resolve);
-    writer.on("error", reject);
+    writer.on('finish', resolve);
+    writer.on('error', reject);
   });
 
-  console.log('[DOWNLOADER] TikTok download complete.');
+  console.log('[DOWNLOADER] TikTok download complete via RapidAPI.');
   return outputPath;
 };
 
@@ -67,16 +78,13 @@ export async function downloadSocialVideo(videoUrl, uploadDir) {
   console.log(`\n[DOWNLOADER] Starting fetch for: ${videoUrl}`);
 
   try {
-    // Added .toLowerCase() to ensure it catches links like TikTok.com or vt.tiktok.com
     if (videoUrl.toLowerCase().includes('tiktok.com')) {
       await downloadTikTok(videoUrl, filePath);
     } else {
-      // Twitter/X and everything else
       await downloadWithYtDlp(videoUrl, filePath);
     }
 
     return filePath;
-
   } catch (error) {
     console.error('[DOWNLOADER] Failed:', error.message);
     throw new Error('Could not extract video from the provided link.');

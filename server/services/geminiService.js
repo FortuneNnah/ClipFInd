@@ -91,7 +91,7 @@ export const identifyVideoWithGemini = async (videoPath) => {
     console.log("Video ready. Asking Gemini...");
 
     const response = await generateWithRetry({
-     model: 'gemini-3.8-flash',
+     model: 'gemini-3.5-flash-lite',
       contents: [
         {
           fileData: {
